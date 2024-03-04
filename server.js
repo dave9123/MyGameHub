@@ -80,18 +80,22 @@ app.get("/api/search", async (req, res) => {
     );
     const armorgamesResponse = await fetch(armorgamesAPI);
     const armorgamesResultJson = await armorgamesResponse.json();
-    const armorgamesSearchResult = armorgamesResultJson
-      .filter((game) => Number(game.game_id) === Number(req.query.game_id))
-      .filter((game) => game.url.split("/")[1] === "play")
-      .map(async (game) => ({
-        id: game.game_id,
-        title: game.label,
-        cover: game.thumbnail,
-        gameUrl: `https://armorgames.com/${game.url}`,
-        gameFile: await fetchGame(game.url, "armorgames", game.game_id),
-        provider: "Armor Games",
-      }));
-    res.json({ ...flashpointSearchResult });
+    await fs.ensureDir("debug");
+    await fs.writeFile(`debug/armorgames.json`, JSON.stringify(armorgamesResultJson));
+    var armorgamesSearchResult = await armorgamesResultJson
+    armorgamesSearchResult = armorgamesSearchResult.filter(game => game.label && game.label.toLowerCase().includes(searchTerm.toLowerCase()))
+    console.log(armorgamesSearchResult)
+    armorgamesSearchResult = armorgamesSearchResult.filter((game) => game.url.split("/")[1] === "play")
+    armorgamesSearchResult = armorgamesSearchResult.map((game) => ({
+      id: game.game_id,
+      title: game.label,
+      cover: game.thumbnail,
+      gameUrl: `https://armorgames.com/${game.url}`,
+      //gameFile: await fetchGame(`https://armorgames.com/${game.url}`, "armorgames", game.game_id),
+      provider: "Armor Games",
+    }));
+    console.log("Finished fetching from Armor Games API");
+    res.json({ ...armorgamesSearchResult });
   }
 });
 
