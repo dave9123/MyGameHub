@@ -6,6 +6,7 @@ const Sentry = require("@sentry/node");
 const path = require("path");
 const fs = require("fs-extra");
 const cheerio = require("cheerio");
+const { PassThrough } = require("stream");
 const port = process.env.PORT || 3000;
 
 Sentry.init({
@@ -84,18 +85,38 @@ app.get("/api/search", async (req, res) => {
     await fs.writeFile(`debug/armorgames.json`, JSON.stringify(armorgamesResultJson));
     var armorgamesSearchResult = await armorgamesResultJson
     armorgamesSearchResult = armorgamesSearchResult.filter(game => game.label && game.label.toLowerCase().includes(searchTerm.toLowerCase()))
-    console.log(armorgamesSearchResult)
     armorgamesSearchResult = armorgamesSearchResult.filter((game) => game.url.split("/")[1] === "play")
+    console.log(armorgamesSearchResult)
     armorgamesSearchResult = armorgamesSearchResult.map((game) => ({
       id: game.game_id,
       title: game.label,
       cover: game.thumbnail,
-      gameUrl: `https://armorgames.com/${game.url}`,
-      //gameFile: await fetchGame(`https://armorgames.com/${game.url}`, "armorgames", game.game_id),
+      gameUrl: `https://armorgames.com${game.url}`,
+      //gameFile: await fetchGame(`https://armorgames.com${game.url}`, "armorgames", game.game_id),
+      getInfo: `${process.env.BASE_PATH}/api/game-info?provider=armorgames&id=${game.game_id}`,
       provider: "Armor Games",
     }));
     console.log("Finished fetching from Armor Games API");
     res.json({ ...armorgamesSearchResult });
+  }
+});
+
+app.get("/api/game-info", async (req, res) => {
+  const provider = req.query.provider;
+  const id = req.query.id;
+  if (!provider || !id) {
+    return res.status(400).json( {error: "Provider and ID are required" });
+  }
+  if (provider === "armorgames") {
+    if (fs.existsSync(`debug/armorgames.json`)) {
+      //
+    } else if (!fs.existsSync(`debug/armorgames.html`)) {
+      //
+    }
+  } else if (provider === "flashpoint") {
+    //
+  } else {
+    res.status(400).json({ error: "Invalid provider" });
   }
 });
 
