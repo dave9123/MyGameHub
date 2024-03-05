@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>My Game Hub - Flash</title>
+    <!--<link rel="stylesheet" href="assets/styles.css" />-->
+    <script src="https://unpkg.com/@ruffle-rs/ruffle"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+        }
+        #player {
+            display: flex;
+            border: none;
+            height: auto;
+            width: auto;
+            align-items: center;
+            justify-content: center;
+            position: fixed;
+        }
+    </style>
+</head>
+<body>
+    <section class="navbar">
+        <button type="button">Home</button>
+        <div id="navbar">
+            <!--<a href="auth/discord" id="login">Login</a>-->
+        </div>
+    </section>
+    <div id="player"></div>
+    <script>
+        let player = window.RufflePlayer.newest().createPlayer();
+        let gamePath = localStorage.getItem('gamePath');
+        player.config.base = gamePath.substring(0, gamePath.lastIndexOf('/') + 1);
+        player.config.allowScriptAccess = true;
+        document.querySelector("#player").append(player);
+        player.load(gamePath);
+        player.addEventListener('loadedmetadata', () => {
+            if (player.metadata.width > 1 && player.metadata.height > 1) {
+                player.style.width  = player.metadata.width  + 'px';
+                player.style.height = player.metadata.height + 'px';
+            }
+        });
+    </script>
+</body>
+</html>
