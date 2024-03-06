@@ -55,6 +55,37 @@ async function fetchGame(url, provider, id) {
   }
 }
 
+app.get("/", (req, res) => {
+  // Check the refresh_token cookie
+  const refreshToken = req.cookies.refresh_token;
+  if (!refreshToken) {
+    return res.sendFile(path.join(__dirname, "public_html", "login.html"));
+  }
+  res.send('You are logged in, <a href="index.html">Home</a>')
+});
+
+app.get('/api/user', async (req, res) => {
+  const accessToken = req.session.accessToken;
+  const refreshToken = req.session.refreshToken;
+  const accessTokenExpiresAt = req.session.accessTokenExpiresAt;
+ 
+  if (!accessToken || !refreshToken || Date.now() > accessTokenExpiresAt) {
+     // Access token has expired or is not available, refresh it
+     const tokenResponse = await axios.post('https://discord.com/api/oauth2/token', null, {
+        params: {
+          client_id: clientId,
+          client_secret: clientSecret,
+          grant_type: 'refresh_token',
+          refresh_token: refreshToken,
+          scope: 'identify email'
+        },
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded'
+        }
+      });
+  }
+});
+
 app.get("/auth/discord", (req, res) => {
   res.redirect(
     `https://discord.com/api/oauth2/authorize?client_id=${process.env.DISCORD_CLIENT_ID}&redirect_uri=${process.env.BASE_PATH}/auth/discord/callback&response_type=code&scope=identify`
@@ -89,7 +120,7 @@ app.get("/auth/discord/callback", async (req, res) => {
   });
   const userJson = await userResponse.json();
   console.log(userJson);
-  res.cookie("refresh_token", json.refresh_token, {
+  res.cookie("refreshToken", json.refresh_token, {
     secure: process.env.SECURE,
     maxAge: 24 * 60 * 60 * 7 * 1000 // 1 week
   });
