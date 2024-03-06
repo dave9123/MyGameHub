@@ -27,7 +27,10 @@ app.use(session({
   secret: process.env.SESSION_SECRET,
   resave: false,
   saveUninitialized: true,
-  cookie: { secure: process.env.SECURE }
+  cookie: {
+    secure: process.env.SECURE,
+    maxAge: 24 * 60 * 60 * 7 * 1000 // 1 week
+  }
 }));
 
 async function fetchGame(url, provider, id) {
@@ -76,6 +79,13 @@ app.get("/auth/discord/callback", async (req, res) => {
       redirect_uri: `${process.env.BASE_PATH}/auth/discord/callback`,
       scope: "identify",
     })
+  });
+  const json = await response.json();
+  const accessToken = json.access_token;
+  const userResponse = await fetch("https://discord.com/api/users/@me", {
+    headers: {
+      Authorization: `Bearer ${accessToken}`
+    }
   });
 });
 
