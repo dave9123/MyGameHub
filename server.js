@@ -54,7 +54,7 @@ async function fetchGame(url, provider, id) {
 
 app.get("/auth/discord", (req, res) => {
   res.redirect(
-    `https://discord.com/api/oauth2/authorize?client_id=${process.env.DISCORD_CLIENT_ID}&redirect_uri=${process.env.BASE_PATH}/auth/discord/callback&response_type=code&scope=identify%20email`
+    `https://discord.com/api/oauth2/authorize?client_id=${process.env.DISCORD_CLIENT_ID}&redirect_uri=${process.env.BASE_PATH}/auth/discord/callback&response_type=code&scope=identify`
   );
 });
 
@@ -74,10 +74,11 @@ app.get("/auth/discord/callback", async (req, res) => {
       grant_type: "authorization_code",
       code,
       redirect_uri: `${process.env.BASE_PATH}/auth/discord/callback`,
-      scope: "identify email",
+      scope: "identify",
     })
   });
 });
+
 app.get("/flash", (req, res) => {
   res.sendFile(path.join(__dirname, "public_html", "flash.html"));
 });
