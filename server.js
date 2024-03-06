@@ -81,12 +81,26 @@ app.get("/auth/discord/callback", async (req, res) => {
     })
   });
   const json = await response.json();
-  const accessToken = json.access_token;
+  console.log(json);
   const userResponse = await fetch("https://discord.com/api/users/@me", {
     headers: {
-      Authorization: `Bearer ${accessToken}`
+      Authorization: `${json.token_type} ${json.access_token}`
     }
   });
+  const userJson = await userResponse.json();
+  console.log(userJson);
+  res.cookie("refresh_token", json.refresh_token, {
+    secure: process.env.SECURE,
+    maxAge: 24 * 60 * 60 * 7 * 1000 // 1 week
+  });
+  res.send(`
+    <div style="margin: 300px auto; max-width: 400px; display: flex; flex-direction: column; align-items: center; font-family: sans-serif;">
+    <h3>Welcome, ${userJson.global_name}</h3>
+    <script>
+      window.location.replace('/');
+    </script>
+    </div>
+  `);
 });
 
 app.get("/flash", (req, res) => {
@@ -94,6 +108,7 @@ app.get("/flash", (req, res) => {
 });
 
 app.get("/login", (req, res) => {
+  res.redirect("/auth/discord");
   res.sendFile(path.join(__dirname, "public_html", "login.html"));
 });
 
