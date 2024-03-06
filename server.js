@@ -6,20 +6,29 @@ const Sentry = require("@sentry/node");
 const path = require("path");
 const fs = require("fs-extra");
 const cheerio = require("cheerio");
-const { PassThrough } = require("stream");
+const session = require("express-session");
 const port = process.env.PORT || 3000;
 
-Sentry.init({
-  dsn: process.env.SENTRY_DSN,
-  integrations: [
-    new Sentry.Integrations.Http({ tracing: true }),
-    new Sentry.Integrations.Express({ app }),
-  ],
-  tracesSampleRate: 1.0,
-  profilesSampleRate: 1.0,
-});
+if (process.env.SENTRY_DSN !== undefined) {
+  Sentry.init({
+    dsn: process.env.SENTRY_DSN,
+    integrations: [
+      new Sentry.Integrations.Http({ tracing: true }),
+      new Sentry.Integrations.Express({ app }),
+    ],
+    tracesSampleRate: 1.0,
+    profilesSampleRate: 1.0,
+  });
+}
 app.use(Sentry.Handlers.requestHandler());
 app.use(Sentry.Handlers.tracingHandler());
+
+app.use(session({
+  secret: process.env.SESSION_SECRET,
+  resave: false,
+  saveUninitialized: true,
+  cookie: { secure: process.env.SECURE }
+}));
 
 async function fetchGame(url, provider, id) {
   console.log(`Fetching game file from ${provider} with id ${id}...`);
@@ -42,6 +51,48 @@ async function fetchGame(url, provider, id) {
     throw new Error("Invalid provider");
   }
 }
+
+app.get("/auth/discord", (req, res) => {
+  res.redirect(
+    `https://discord.com/api/oauth2/authorize?client_id=${process.env.DISCORD_CLIENT_ID}&redirect_uri=${process.env.BASE_PATH}/auth/discord/callback&response_type=code&scope=identify%20email`
+  );
+});
+
+app.get("/auth/discord/callback", async (req, res) => {
+  const code = req.query.code;
+  if (!code) {
+    return res.status(400).send("Code is required");
+  };
+  const response = await fetch("https://discord.com/api/oauth2/token", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded",
+    },
+    body: new URLSearchParams({
+      client_id: process.env.DISCORD_CLIENT_ID,
+      client_secret: process.env.DISCORD_CLIENT_SECRET,
+      grant_type: "authorization_code",
+      code,
+      redirect_uri: `${process.env.BASE_PATH}/auth/discord/callback`,
+      scope: "identify email",
+    })
+  });
+
+app.get("/flash", (req, res) => {
+  res.sendFile(path.join(__dirname, "public_html", "flash.html"));
+});
+
+app.get("/login", (req, res) => {
+  res.sendFile(path.join(__dirname, "public_html", "login.html"));
+});
+
+app.get("/developers", (req, res) => {
+  res.sendFile(path.join(__dirname, "public_html", "developers.html"));
+});
+
+app.get("/settings", (req, res) => {
+  res.sendFile(path.join(__dirname, "public_html", "settings.html"));
+});
 
 app.get("/api/search", async (req, res) => {
   const searchTerm = req.query.q;
@@ -76,9 +127,7 @@ app.get("/api/search", async (req, res) => {
         getInfo: `https://ooooooooo.ooo/get?id=${result.id}`,
         provider: "Flashpoint",
       }));
-    console.log(
-      "Finished fetching from Flashpoint API\nFetching from Armor Games API..."
-    );
+    console.log("Finished fetching from Flashpoint API\nFetching from Armor Games API...");
     const armorgamesResponse = await fetch(armorgamesAPI);
     const armorgamesResultJson = await armorgamesResponse.json();
     await fs.ensureDir("debug");
