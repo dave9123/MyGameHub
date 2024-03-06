@@ -77,7 +77,7 @@ app.get("/auth/discord/callback", async (req, res) => {
       scope: "identify email",
     })
   });
-
+});
 app.get("/flash", (req, res) => {
   res.sendFile(path.join(__dirname, "public_html", "flash.html"));
 });
