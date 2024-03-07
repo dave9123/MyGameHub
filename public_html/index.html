@@ -17,18 +17,23 @@
             const app = initializeApp(firebaseConfig);
             const analytics = getAnalytics(app);
         </script>
+        <link rel="stylesheet" type="text/css" href="styles.css">
     </head>
     <body>
         <div class="navbar">
             <a href="/">Home</a>
-            <a href="developers">Developers</a>
-            <a href="settings">Settings</a>            
-            <a href="login">Login</a>
+            <div class="right-navbar">
+                <a href="developers">Developers</a>
+                <a href="settings">Settings</a>
+                <a href="login">Login</a>
+            </div>
         </div>
-        <div class="searchbar">
-            <input type="text" id="search" name="search" placeholder="Search for games...">
-            <button type="submit">Search</button>
+        <div class="content-container">
+            <div class="searchbar">
+                <input type="text" id="search" name="search" placeholder="Search for games...">
+                <button type="submit">Search</button>
+            </div>
+            <section class="searchresults"></section>
         </div>
-        <section class="searchresults"></section>
     </body>
 </html>

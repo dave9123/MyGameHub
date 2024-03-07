@@ -56,12 +56,11 @@ async function fetchGame(url, provider, id) {
 }
 
 app.get("/", (req, res) => {
-  // Check the refresh_token cookie
-  const refreshToken = req.cookies.refresh_token;
-  if (!refreshToken) {
-    return res.sendFile(path.join(__dirname, "public_html", "login.html"));
+  const refreshToken = req.session.refreshToken;
+  if (refreshToken !== undefined) {
+    res.sendFile(path.join(__dirname, "public_html", "login.html"));
   }
-  res.send('You are logged in, <a href="index.html">Home</a>')
+  res.send('Hello, logged in user<script>top.location.href="index.html";</script>')
 });
 
 app.get('/api/user', async (req, res) => {
@@ -87,9 +86,7 @@ app.get('/api/user', async (req, res) => {
 });
 
 app.get("/auth/discord", (req, res) => {
-  res.redirect(
-    `https://discord.com/api/oauth2/authorize?client_id=${process.env.DISCORD_CLIENT_ID}&redirect_uri=${process.env.BASE_PATH}/auth/discord/callback&response_type=code&scope=identify`
-  );
+  res.redirect(`https://discord.com/apioauth2/authorize?client_id=${process.env.DISCORD_CLIENT_ID}&redirect_uri=${process.env.BASE_PATH}/auth/discord/callback&response_type=code&scope=identify`);
 });
 
 app.get("/auth/discord/callback", async (req, res) => {
@@ -140,7 +137,7 @@ app.get("/flash", (req, res) => {
 
 app.get("/login", (req, res) => {
   res.redirect("/auth/discord");
-  res.sendFile(path.join(__dirname, "public_html", "login.html"));
+  //res.sendFile(path.join(__dirname, "public_html", "login.html"));
 });
 
 app.get("/developers", (req, res) => {
