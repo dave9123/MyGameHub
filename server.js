@@ -86,7 +86,7 @@ app.get('/api/user', async (req, res) => {
 });
 
 app.get("/auth/discord", (req, res) => {
-  res.redirect(`https://discord.com/apioauth2/authorize?client_id=${process.env.DISCORD_CLIENT_ID}&redirect_uri=${process.env.BASE_PATH}/auth/discord/callback&response_type=code&scope=identify`);
+  res.redirect(`https://discord.com/api/oauth2/authorize?client_id=${process.env.DISCORD_CLIENT_ID}&redirect_uri=${process.env.BASE_PATH}/auth/discord/callback&response_type=code&scope=identify`);
 });
 
 app.get("/auth/discord/callback", async (req, res) => {
