@@ -17,9 +17,19 @@ body {
     color: white;
 }
 
+.navbar img {
+    height: 30px;
+}
+
 .right-navbar {
     display: flex;
     gap: 10px;
+    align-items: center;
+}
+
+.right-navbar a {
+    color: white;
+    text-decoration: none;
 }
 
 .content-container {
@@ -32,12 +42,15 @@ body {
     display: flex;
     justify-content: center;
     margin-bottom: 20px;
+    border: none;
 }
 
 .searchbar input[type="text"] {
     width: 70%;
     padding: 10px;
-    border: 1px solid #ccc;
+    border: none;
+    border-radius: 5px;
+    margin: 5px;
 }
 
 .searchbar button[type="submit"] {
@@ -46,6 +59,8 @@ body {
     background-color: #4CAF50;
     color: white;
     cursor: pointer;
+    border-radius: 5px;
+    margin: 5px;
 }
 
 .searchresults {

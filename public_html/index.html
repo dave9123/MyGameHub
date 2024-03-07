@@ -18,10 +18,11 @@
             const analytics = getAnalytics(app);
         </script>
         <link rel="stylesheet" type="text/css" href="styles.css">
+        <title>MyGameHub</title>
     </head>
     <body>
         <div class="navbar">
-            <a href="/">Home</a>
+            <a href="/"><img src="assets/logo-256.jpg"></a>
             <div class="right-navbar">
                 <a href="developers">Developers</a>
                 <a href="settings">Settings</a>
@@ -29,10 +30,10 @@
             </div>
         </div>
         <div class="content-container">
-            <div class="searchbar">
+            <form class="searchbar" onclick="search()">
                 <input type="text" id="search" name="search" placeholder="Search for games...">
                 <button type="submit">Search</button>
-            </div>
+            </form>
             <section class="searchresults"></section>
         </div>
     </body>
