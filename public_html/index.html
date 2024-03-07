@@ -19,6 +19,7 @@
         </script>
         <link rel="stylesheet" type="text/css" href="styles.css">
         <title>MyGameHub</title>
+        <script src="script.js"></script>
     </head>
     <body>
         <div class="navbar">
@@ -30,7 +31,7 @@
             </div>
         </div>
         <div class="content-container">
-            <form class="searchbar" onclick="search()">
+            <form class="searchbar" onsubmit="return search(event)">
                 <input type="text" id="search" name="search" placeholder="Search for games...">
                 <button type="submit">Search</button>
             </form>
