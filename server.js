@@ -23,15 +23,17 @@ if (process.env.SENTRY_DSN !== undefined) {
 app.use(Sentry.Handlers.requestHandler());
 app.use(Sentry.Handlers.tracingHandler());
 
-app.use(session({
-  secret: process.env.SESSION_SECRET,
-  resave: false,
-  saveUninitialized: true,
-  cookie: {
-    secure: process.env.SECURE,
-    maxAge: 24 * 60 * 60 * 7 * 1000 // 1 week
-  }
-}));
+app.use(
+  session({
+    secret: process.env.SESSION_SECRET,
+    resave: false,
+    saveUninitialized: true,
+    cookie: {
+      secure: process.env.SECURE,
+      maxAge: 24 * 60 * 60 * 7 * 1000, // 1 week
+    },
+  })
+);
 
 async function fetchGame(url, provider, id) {
   console.log(`Fetching game file from ${provider} with id ${id}...`);
@@ -57,43 +59,52 @@ async function fetchGame(url, provider, id) {
 
 app.get("/", (req, res) => {
   const refreshToken = req.session.refreshToken;
-  if (refreshToken !== undefined) {
-    res.sendFile(path.join(__dirname, "public_html", "login.html"));
+  if (refreshToken === undefined) {
+    res.sendFile(path.join(__dirname, "public_html", "index.html"));
+  } else {
+    console.log(refreshToken);
+    res.send(
+      'Hello, logged in user<script>top.location.href="index.html";</script>'
+    );
   }
-  res.send('Hello, logged in user<script>top.location.href="index.html";</script>')
 });
 
-app.get('/api/user', async (req, res) => {
+app.get("/api/user", async (req, res) => {
   const accessToken = req.session.accessToken;
   const refreshToken = req.session.refreshToken;
   const accessTokenExpiresAt = req.session.accessTokenExpiresAt;
- 
+
   if (!accessToken || !refreshToken || Date.now() > accessTokenExpiresAt) {
-     // Access token has expired or is not available, refresh it
-     const tokenResponse = await axios.post('https://discord.com/api/oauth2/token', null, {
-        params: {
-          client_id: clientId,
-          client_secret: clientSecret,
-          grant_type: 'refresh_token',
-          refresh_token: refreshToken,
-          scope: 'identify email'
-        },
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded'
-        }
-      });
+    const token = await fetch("https://discord.com/api/oauth2/token", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: new URLSearchParams({
+        client_id: process.env.DISCORD_CLIENT_ID,
+        client_secret: process.env.DISCORD_CLIENT_SECRET,
+        grant_type: "refresh_token",
+        refresh_token: refreshToken,
+        scope: "identify",
+      }),
+    });
+    console.log(token);
+    const tokenJson = await token.json();
+    console.log(tokenJson);
   }
 });
 
 app.get("/auth/discord", (req, res) => {
-  res.redirect(`https://discord.com/api/oauth2/authorize?client_id=${process.env.DISCORD_CLIENT_ID}&redirect_uri=${process.env.BASE_PATH}/auth/discord/callback&response_type=code&scope=identify`);
+  res.redirect(
+    `https://discord.com/api/oauth2/authorize?client_id=${process.env.DISCORD_CLIENT_ID}&redirect_uri=${process.env.BASE_PATH}/auth/discord/callback&response_type=code&scope=identify`
+  );
 });
 
 app.get("/auth/discord/callback", async (req, res) => {
   const code = req.query.code;
   if (!code) {
     return res.status(400).send("Code is required");
-  };
+  }
   const response = await fetch("https://discord.com/api/oauth2/token", {
     method: "POST",
     headers: {
@@ -106,20 +117,20 @@ app.get("/auth/discord/callback", async (req, res) => {
       code,
       redirect_uri: `${process.env.BASE_PATH}/auth/discord/callback`,
       scope: "identify",
-    })
+    }),
   });
   const json = await response.json();
   console.log(json);
   const userResponse = await fetch("https://discord.com/api/users/@me", {
     headers: {
-      Authorization: `${json.token_type} ${json.access_token}`
-    }
+      Authorization: `${json.token_type} ${json.access_token}`,
+    },
   });
   const userJson = await userResponse.json();
   console.log(userJson);
   res.cookie("refreshToken", json.refresh_token, {
     secure: process.env.SECURE,
-    maxAge: 24 * 60 * 60 * 7 * 1000 // 1 week
+    maxAge: 24 * 60 * 60 * 7 * 1000, // 1 week
   });
   res.send(`
     <div style="margin: 300px auto; max-width: 400px; display: flex; flex-direction: column; align-items: center; font-family: sans-serif;">
@@ -181,15 +192,26 @@ app.get("/api/search", async (req, res) => {
         getInfo: `https://ooooooooo.ooo/get?id=${result.id}`,
         provider: "Flashpoint",
       }));
-    console.log("Finished fetching from Flashpoint API\nFetching from Armor Games API...");
+    console.log(
+      "Finished fetching from Flashpoint API\nFetching from Armor Games API..."
+    );
     const armorgamesResponse = await fetch(armorgamesAPI);
     const armorgamesResultJson = await armorgamesResponse.json();
     await fs.ensureDir("debug");
-    await fs.writeFile(`debug/armorgames.json`, JSON.stringify(armorgamesResultJson));
-    var armorgamesSearchResult = await armorgamesResultJson
-    armorgamesSearchResult = armorgamesSearchResult.filter(game => game.label && game.label.toLowerCase().includes(searchTerm.toLowerCase()))
-    armorgamesSearchResult = armorgamesSearchResult.filter((game) => game.url.split("/")[1] === "play")
-    console.log(armorgamesSearchResult)
+    await fs.writeFile(
+      `debug/armorgames.json`,
+      JSON.stringify(armorgamesResultJson)
+    );
+    var armorgamesSearchResult = await armorgamesResultJson;
+    armorgamesSearchResult = armorgamesSearchResult.filter(
+      (game) =>
+        game.label &&
+        game.label.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+    armorgamesSearchResult = armorgamesSearchResult.filter(
+      (game) => game.url.split("/")[1] === "play"
+    );
+    console.log(armorgamesSearchResult);
     armorgamesSearchResult = armorgamesSearchResult.map((game) => ({
       id: game.game_id,
       title: game.label,
@@ -208,7 +230,7 @@ app.get("/api/game-info", async (req, res) => {
   const provider = req.query.provider;
   const id = req.query.id;
   if (!provider || !id) {
-    return res.status(400).json( {error: "Provider and ID are required" });
+    return res.status(400).json({ error: "Provider and ID are required" });
   }
   if (provider === "armorgames") {
     if (fs.existsSync(`debug/armorgames.json`)) {
