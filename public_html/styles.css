@@ -38,14 +38,14 @@ body {
     margin-top: 20px;
 }
 
-.searchbar {
+.search-bar {
     display: flex;
     justify-content: center;
     margin-bottom: 20px;
     border: none;
 }
 
-.searchbar input[type="text"] {
+.search-bar input[type="text"] {
     width: 70%;
     padding: 10px;
     border: none;
@@ -53,7 +53,7 @@ body {
     margin: 5px;
 }
 
-.searchbar button[type="submit"] {
+.search-bar button[type="submit"] {
     padding: 10px 20px;
     border: none;
     background-color: #4CAF50;

@@ -31,10 +31,12 @@
             </div>
         </div>
         <div class="content-container">
-            <form class="searchbar" onsubmit="return search(event)">
-                <input type="text" name="search" placeholder="Search for games...">
-                <button type="submit">Search</button>
-            </form>
+            <container>
+                <form class="search-bar" onsubmit="return searchGames(event);">
+                    <input type="text" name="search" placeholder="Search games...">
+                    <button type="submit">Search</button>
+                </form>
+            </container>
             <section class="searchresults"></section>
         </div>
     </body>
