@@ -3,8 +3,25 @@
 <head>
     <meta charset="UTF-8" />
     <title>My Game Hub - Flash</title>
-    <!--<link rel="stylesheet" href="assets/styles.css" />-->
+    <link rel="stylesheet" href="assets/styles.css" />
     <script src="https://unpkg.com/@ruffle-rs/ruffle"></script>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-analytics.js";
+        // TODO: Add SDKs for Firebase products that you want to use
+        // https://firebase.google.com/docs/web/setup#available-libraries
+        const firebaseConfig = {
+          apiKey: "AIzaSyDLHaeZMNHqLBicQVCE5YGr-Wp24LK8v6U",
+          authDomain: "mygamehub-485c0.firebaseapp.com",
+          projectId: "mygamehub-485c0",
+          storageBucket: "mygamehub-485c0.appspot.com",
+          messagingSenderId: "816072574701",
+          appId: "1:816072574701:web:9af72ace186c29b6e86ee4",
+          measurementId: "G-M02XGW6R30"
+        };
+        const app = initializeApp(firebaseConfig);
+        const analytics = getAnalytics(app);
+    </script>
     <style>
         body {
             margin: 0;
@@ -25,10 +42,12 @@
     <section class="navbar">
         <button type="button">Home</button>
         <div id="navbar">
-            <!--<a href="auth/discord" id="login">Login</a>-->
+            <a href="auth/discord" id="login">Login</a>
         </div>
     </section>
-    <div id="player"></div>
+    <div class="content-container">
+        <div id="player"></div>
+    </div>
     <script>
         let player = window.RufflePlayer.newest().createPlayer();
         let gamePath = localStorage.getItem('gamePath');

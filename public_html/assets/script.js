@@ -22,22 +22,22 @@ document.addEventListener('DOMContentLoaded', () => {
         if (resultsArray.length > 0) {
             resultsArray.forEach(result => {
                 const gameElement = document.createElement('div');
-                gameElement.classList.add('search-result');
-                if (result.getInfo != null) {
+                gameElement.classList.add('searchresults');
+                if (result.provider === "Flashpoint") {
                     gameElement.innerHTML = `
                         <h3>${result.title}</h3>
                         <p>Provider: Flashpoint</p>
-                        <a onclick="playFlashpoint('${result.id}', '${result.title}')" target="_blank">Play Game</a>
+                        <button><a onclick="playFlashpoint('${result.id}', '${result.title}')" target="_blank">Play Game</a></button>
                         <img loading="lazy" src="${result.cover}" alt="${result.title} Cover">
                     `;
                     searchResultsSection.appendChild(gameElement);
                     return;
-                } else if (result.provider === "armorGames") {
+                } else if (result.provider === "Armor Games") {
                     gameElement.innerHTML = `
                     <h3>${result.title}</h3>
                     <p>Provider: Armor Games</p>
-                    <a onclick="playArmor('${result.id}')" target="_blank">Play Game</a>
                     <img loading="lazy" src="${result.cover}" alt="${result.title} Cover">
+                    <button><a onclick="playArmor('${result.id}', '${result.gameUrl}')" target="_blank">Play Game</a></button>
                 `;
                 }
                 searchResultsSection.appendChild(gameElement);
@@ -51,7 +51,7 @@ async function playFlashpoint(id, gameName) {
     //if (localStorage.getItem('userId') != null) {
     //    fetch(`play?userId=${localStorage.getItem('userId')}&gameName=${gameName}`);
     //};
-    const get = `flashpoint?id=${id}`;
+    const get = `api/getgame?id=${id}&provider=flashpoint`;
     f = fetch(get)
         .then(async response => {
             if (response.status == 404) {
@@ -59,25 +59,23 @@ async function playFlashpoint(id, gameName) {
             } else {
                 gamePath = await response.json();
                 localStorage.setItem('gamePath', gamePath);
-                window.location.href = 'flash.html';
+                window.location.href = 'flash';
             }
         });
 };
-async function playArmor(id) {
+async function playArmor(id, url) {
     //if (localStorage.getItem('userId') != null) {
     //    fetch(`play?userId=${localStorage.getItem('userId')}&gameName=${gameName}`);
     //};
-    const get = `armorgames?game_id=${id}`;
+    const get = `api/getgame?id=${id}&url=${url}&provider=armorgames`;
     f = await fetch(get)
         .then(async response => {
             if (response.status === 404) {
                 alert('Game not found. Please report this to the developer.');
             } else if (response.status === 200) {
                 response = await response.json();
-                if (response.gameType === "Flash") {
-                    localStorage.setItem('gamePath', response.directLink);
-                    window.location.href = 'flash.html';
-                };
+                localStorage.setItem('gamePath', response.directLink);
+                window.location.href = 'flash';
             }
         });
 }

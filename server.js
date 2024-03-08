@@ -35,7 +35,7 @@ app.use(
   })
 );
 
-async function fetchGame(url, provider, id) {
+async function fetchGame(provider, id, url) {
   console.log(`Fetching game file from ${provider} with id ${id}...`);
   if (provider === "armorgames") {
     if (fs.existsSync(`debug/${id}.html`)) {
@@ -57,17 +57,17 @@ async function fetchGame(url, provider, id) {
   }
 }
 
-app.get("/", (req, res) => {
-  const refreshToken = req.session.refreshToken;
-  if (refreshToken === undefined) {
-    res.sendFile(path.join(__dirname, "public_html", "index.html"));
-  } else {
-    console.log(refreshToken);
-    res.send(
-      'Hello, logged in user<script>top.location.href="index.html";</script>'
-    );
-  }
-});
+//app.get("/", (req, res) => {
+//  const refreshToken = req.session.refreshToken;
+//  if (refreshToken === undefined) {
+//    res.sendFile(path.join(__dirname, "public_html", "index.html"));
+//  } else {
+//    console.log(refreshToken);
+//    res.send(
+//      'Hello, logged in user<script>top.location.href="index.html";</script>'
+//    );
+//  }
+//});
 
 app.get("/api/user", async (req, res) => {
   const accessToken = req.session.accessToken;
@@ -184,17 +184,12 @@ app.get("/api/search", async (req, res) => {
         developer: result.developer,
         publisher: result.publisher,
         description: result.originalDescription,
-        cover: `https://infinity.unstable.life/images/Logos/${result.id.substring(
-          0,
-          2
-        )}/${result.id.substring(2, 4)}/${result.id}.png?type=jpg`,
+        cover: `https://infinity.unstable.life/images/Logos/${result.id.substring(0,2)}/${result.id.substring(2,4)}/${result.id}.png?type=jpg`,
         gameFile: `https://download.unstable.life/gib-roms/Games/${result.id}`,
         getInfo: `https://ooooooooo.ooo/get?id=${result.id}`,
         provider: "Flashpoint",
       }));
-    console.log(
-      "Finished fetching from Flashpoint API\nFetching from Armor Games API..."
-    );
+    console.log("Finished fetching from Flashpoint API\nFetching from Armor Games API...");
     const armorgamesResponse = await fetch(armorgamesAPI);
     const armorgamesResultJson = await armorgamesResponse.json();
     await fs.ensureDir("debug");
@@ -203,11 +198,7 @@ app.get("/api/search", async (req, res) => {
       JSON.stringify(armorgamesResultJson)
     );
     var armorgamesSearchResult = await armorgamesResultJson;
-    armorgamesSearchResult = armorgamesSearchResult.filter(
-      (game) =>
-        game.label &&
-        game.label.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    armorgamesSearchResult = armorgamesSearchResult.filter((game) => game.label && game.label.toLowerCase().includes(searchTerm.toLowerCase()));
     armorgamesSearchResult = armorgamesSearchResult.filter(
       (game) => game.url.split("/")[1] === "play"
     );
@@ -218,7 +209,7 @@ app.get("/api/search", async (req, res) => {
       cover: game.thumbnail,
       gameUrl: `https://armorgames.com${game.url}`,
       //gameFile: await fetchGame(`https://armorgames.com${game.url}`, "armorgames", game.game_id),
-      getInfo: `${process.env.BASE_PATH}/api/game-info?provider=armorgames&id=${game.game_id}`,
+      //getInfo: `${process.env.BASE_PATH}/api/game-info?provider=armorgames&id=${game.game_id}`,
       provider: "Armor Games",
     }));
     console.log("Finished fetching from Armor Games API");
@@ -226,23 +217,40 @@ app.get("/api/search", async (req, res) => {
   }
 });
 
-app.get("/api/game-info", async (req, res) => {
+//app.get("/api/game-info", async (req, res) => {
+//  const provider = req.query.provider;
+//  const id = req.query.id;
+//  if (!provider || !id) {
+//    return res.status(400).json({ error: "Provider and ID are required" });
+//  }
+//  if (provider === "armorgames") {
+//    if (fs.existsSync(`debug/armorgames.json`)) {
+//      //
+//    } else if (!fs.existsSync(`debug/armorgames.html`)) {
+//      //
+//    }
+//  } else if (provider === "flashpoint") {
+//    //
+//  } else {
+//    res.status(400).json({ error: "Invalid provider" });
+//  }
+//});
+
+app.use('/api/getgame', async (req, res) => {
   const provider = req.query.provider;
   const id = req.query.id;
   if (!provider || !id) {
     return res.status(400).json({ error: "Provider and ID are required" });
   }
   if (provider === "armorgames") {
-    if (fs.existsSync(`debug/armorgames.json`)) {
-      //
-    } else if (!fs.existsSync(`debug/armorgames.html`)) {
-      //
-    }
+    const gameFile = await fetchGame(`https://armorgames.com/play/${id}`, "armorgames", id);
+    res.json(gameFile);
   } else if (provider === "flashpoint") {
-    //
+    const gameFile = await fetchGame(`https://download.unstable.life/gib-roms/Games/${id}`, "flashpoint", id);
+    res.json(gameFile);
   } else {
     res.status(400).json({ error: "Invalid provider" });
-  }
+  };
 });
 
 app.use(express.static(path.join(__dirname, "public_html")));
