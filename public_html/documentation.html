@@ -19,8 +19,11 @@
             const analytics = getAnalytics(app);
         </script>
         <link rel="stylesheet" type="text/css" href="assets/styles.css">
-        <title>MyGameHub - Developers</title>
-        <script src="assets/script.js"></script>
+        <title>MyGameHub - Documentation</title>
+        <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+        <script>
+            document.getElementById('content').innerHTML = marked.parse('# API Reference');
+        </script>
     </head>
     <body>
         <div class="navbar">
@@ -32,12 +35,7 @@
             </div>
         </div>
         <div class="content-container">
-            <container>
-                <h3>Developers</h3>
-                <p>Dave - coded stuff <i>a totally great styling made by this guy 😉</i> <a href="https://discord.com/users/781708312466554940">Discord</a>
-                <br />
-                <p>Michael - made the logo <a href="https://discord.com/users/772639576875073556">Discord</a></p>
-            </container>
+            <div id="content"></div>
         </div>
     </body>
 </html>

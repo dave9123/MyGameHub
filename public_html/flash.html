@@ -32,22 +32,24 @@
             border: none;
             height: auto;
             width: auto;
+        }
+        #player-container {
+            position: relative;
             align-items: center;
             justify-content: center;
-            position: fixed;
         }
     </style>
 </head>
 <body>
     <section class="navbar">
-        <button type="button">Home</button>
-        <div id="navbar">
-            <a href="auth/discord" id="login">Login</a>
+        <a href="/"><img src="assets/logo-256.jpg"></a>
+        <div class="right-navbar">
+            <a href="developers">Developers</a>
+            <a href="settings">Settings</a>
+            <a href="login">Login</a>
         </div>
     </section>
-    <div class="content-container">
-        <div id="player"></div>
-    </div>
+    <div id="player"></div>
     <script>
         let player = window.RufflePlayer.newest().createPlayer();
         let gamePath = localStorage.getItem('gamePath');

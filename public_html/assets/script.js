@@ -22,7 +22,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (resultsArray.length > 0) {
             resultsArray.forEach(result => {
                 const gameElement = document.createElement('div');
-                gameElement.classList.add('searchresults');
+                gameElement.classList.add('search-result');
                 if (result.provider === "Flashpoint") {
                     gameElement.innerHTML = `
                         <h3>${result.title}</h3>
@@ -74,7 +74,7 @@ async function playArmor(id, url) {
                 alert('Game not found. Please report this to the developer.');
             } else if (response.status === 200) {
                 response = await response.json();
-                localStorage.setItem('gamePath', response.directLink);
+                localStorage.setItem('gamePath', response.gameFile);
                 window.location.href = 'flash';
             }
         });

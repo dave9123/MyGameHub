@@ -36,7 +36,7 @@ app.use(
 );
 
 async function fetchGame(provider, id, url) {
-  console.log(`Fetching game file from ${provider} with id ${id}...`);
+  console.log(`Fetching game file from ${provider} with id ${id}`);
   if (provider === "armorgames") {
     if (fs.existsSync(`debug/${id}.html`)) {
       console.log("File exists");
@@ -46,11 +46,15 @@ async function fetchGame(provider, id, url) {
       return gameFile;
     } else if (!fs.existsSync(`debug/${id}.json`)) {
       const response = await fetch(url);
-      const html = await response.text();
-      await fs.ensureDir("debug");
-      await fs.writeFile(`debug/armorgames-${id}.html`, html);
-      const gameFile = cheerio.load(html)('param[name="movie"]').attr("value");
-      return gameFile;
+      if (!response.ok) {
+        return res.status(400).json({ error: "Failed to fetch game file" });
+      } else {
+        const html = await response.text();
+        await fs.ensureDir("debug");
+        await fs.writeFile(`debug/armorgames-${id}.html`, html);
+        const gameFile = cheerio.load(html)('param[name="movie"]').attr("value");
+        return gameFile;
+      }
     }
   } else {
     throw new Error("Invalid provider");
@@ -146,6 +150,10 @@ app.get("/flash", (req, res) => {
   res.sendFile(path.join(__dirname, "public_html", "flash.html"));
 });
 
+app.get("/documentation", (req, res) => {
+  res.sendFile(path.join(__dirname, "public_html", "documentation.html"));
+});
+
 app.get("/login", (req, res) => {
   res.redirect("/auth/discord");
   //res.sendFile(path.join(__dirname, "public_html", "login.html"));
@@ -193,15 +201,10 @@ app.get("/api/search", async (req, res) => {
     const armorgamesResponse = await fetch(armorgamesAPI);
     const armorgamesResultJson = await armorgamesResponse.json();
     await fs.ensureDir("debug");
-    await fs.writeFile(
-      `debug/armorgames.json`,
-      JSON.stringify(armorgamesResultJson)
-    );
+    await fs.writeFile(`debug/armorgames.json`,JSON.stringify(armorgamesResultJson));
     var armorgamesSearchResult = await armorgamesResultJson;
     armorgamesSearchResult = armorgamesSearchResult.filter((game) => game.label && game.label.toLowerCase().includes(searchTerm.toLowerCase()));
-    armorgamesSearchResult = armorgamesSearchResult.filter(
-      (game) => game.url.split("/")[1] === "play"
-    );
+    armorgamesSearchResult = armorgamesSearchResult.filter((game) => game.url.split("/")[1] === "play");
     console.log(armorgamesSearchResult);
     armorgamesSearchResult = armorgamesSearchResult.map((game) => ({
       id: game.game_id,
@@ -236,18 +239,21 @@ app.get("/api/search", async (req, res) => {
 //  }
 //});
 
-app.use('/api/getgame', async (req, res) => {
+app.get('/api/getgame', async (req, res) => {
   const provider = req.query.provider;
   const id = req.query.id;
   if (!provider || !id) {
     return res.status(400).json({ error: "Provider and ID are required" });
   }
   if (provider === "armorgames") {
-    const gameFile = await fetchGame(`https://armorgames.com/play/${id}`, "armorgames", id);
-    res.json(gameFile);
+    const gameFile = await fetchGame("armorgames", id, `https://armorgames.com/play/${id}`);
+    res.json({ gameFile: gameFile });
   } else if (provider === "flashpoint") {
-    const gameFile = await fetchGame(`https://download.unstable.life/gib-roms/Games/${id}`, "flashpoint", id);
-    res.json(gameFile);
+    const gameinfo = await fetch(`https://ooooooooo.ooo/get?id=${id}`)
+    const gameinfojson = await gameinfo.json();
+    console.log(gameinfojson);
+    //const gameFile = await fetchGame("flashpoint", id, `https://download.unstable.life/gib-roms/Games/${id}.zip`);
+    res.json({ gameFile: gameinfojson.launchCommand });
   } else {
     res.status(400).json({ error: "Invalid provider" });
   };
