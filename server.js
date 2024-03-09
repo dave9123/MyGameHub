@@ -193,8 +193,8 @@ app.get("/api/search", async (req, res) => {
         publisher: result.publisher,
         description: result.originalDescription,
         cover: `https://infinity.unstable.life/images/Logos/${result.id.substring(0,2)}/${result.id.substring(2,4)}/${result.id}.png?type=jpg`,
-        gameFile: `https://download.unstable.life/gib-roms/Games/${result.id}`,
-        getInfo: `https://ooooooooo.ooo/get?id=${result.id}`,
+        gameFile: `https://download.unstable.life/gib-roms/Games/${result.id}-${result.utcMilli}.zip`,
+        getInfo: `https://ooooooooo.ooo/get?id=${result.id}`, //{"uuid":"06695a49-dd02-4902-ae18-aa13d8b50c20","title":"The Sigworminator 6000","launchCommand":"http://uploads.ungrounded.net/231000/231585_Create_a_worm.swf?123","utcMilli":"1616732063351","extreme":false,"votesWorking":0,"votesBroken":0,"isZipped":true}
         provider: "Flashpoint",
       }));
     console.log("Finished fetching from Flashpoint API\nFetching from Armor Games API...");
@@ -216,7 +216,7 @@ app.get("/api/search", async (req, res) => {
       provider: "Armor Games",
     }));
     console.log("Finished fetching from Armor Games API");
-    res.json({ ...armorgamesSearchResult });
+    res.json({ ...flashpointSearchResult });
   }
 });
 

@@ -21,9 +21,6 @@
         <link rel="stylesheet" type="text/css" href="assets/styles.css">
         <title>MyGameHub - Documentation</title>
         <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-        <script>
-            document.getElementById('content').innerHTML = marked.parse('# API Reference');
-        </script>
     </head>
     <body>
         <div class="navbar">
@@ -34,8 +31,9 @@
                 <a href="login">Login</a>
             </div>
         </div>
-        <div class="content-container">
-            <div id="content"></div>
-        </div>
+        <div id="content-container"></div>
+        <script>
+            document.getElementById('content-container').innerHTML = marked.parse('# API Reference\n### [/api/search] Searching\nExample: `http://localhost/api/search?q=game`<br/>\nAccepts: GET request and `q` request query\n### [/api/getgame] Get Game Information\nExample: `http://localhost/api/getgame?provider=armorgames&id=186`<br/>\nAccepts: GET request, `provider` and `id` request query');
+        </script>
     </body>
 </html>
