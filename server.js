@@ -193,7 +193,7 @@ app.get("/api/search", async (req, res) => {
         publisher: result.publisher,
         description: result.originalDescription,
         cover: `https://infinity.unstable.life/images/Logos/${result.id.substring(0,2)}/${result.id.substring(2,4)}/${result.id}.png?type=jpg`,
-        gameFile: `https://download.unstable.life/gib-roms/Games/${result.id}-${result.utcMilli}.zip`,
+        //gameFile: `https://download.unstable.life/gib-roms/Games/${result.id}-${result.utcMilli}.zip`,
         getInfo: `https://ooooooooo.ooo/get?id=${result.id}`, //{"uuid":"06695a49-dd02-4902-ae18-aa13d8b50c20","title":"The Sigworminator 6000","launchCommand":"http://uploads.ungrounded.net/231000/231585_Create_a_worm.swf?123","utcMilli":"1616732063351","extreme":false,"votesWorking":0,"votesBroken":0,"isZipped":true}
         provider: "Flashpoint",
       }));
@@ -212,32 +212,13 @@ app.get("/api/search", async (req, res) => {
       cover: game.thumbnail,
       gameUrl: `https://armorgames.com${game.url}`,
       //gameFile: await fetchGame(`https://armorgames.com${game.url}`, "armorgames", game.game_id),
-      //getInfo: `${process.env.BASE_PATH}/api/game-info?provider=armorgames&id=${game.game_id}`,
+      //getInfo: `${process.env.BASE_PATH}/api/getgame?provider=armorgames&id=${game.game_id}`,
       provider: "Armor Games",
     }));
     console.log("Finished fetching from Armor Games API");
     res.json({ ...flashpointSearchResult });
   }
 });
-
-//app.get("/api/game-info", async (req, res) => {
-//  const provider = req.query.provider;
-//  const id = req.query.id;
-//  if (!provider || !id) {
-//    return res.status(400).json({ error: "Provider and ID are required" });
-//  }
-//  if (provider === "armorgames") {
-//    if (fs.existsSync(`debug/armorgames.json`)) {
-//      //
-//    } else if (!fs.existsSync(`debug/armorgames.html`)) {
-//      //
-//    }
-//  } else if (provider === "flashpoint") {
-//    //
-//  } else {
-//    res.status(400).json({ error: "Invalid provider" });
-//  }
-//});
 
 app.get('/api/getgame', async (req, res) => {
   const provider = req.query.provider;
@@ -250,10 +231,22 @@ app.get('/api/getgame', async (req, res) => {
     res.json({ gameFile: gameFile });
   } else if (provider === "flashpoint") {
     const gameinfo = await fetch(`https://ooooooooo.ooo/get?id=${id}`)
-    const gameinfojson = await gameinfo.json();
-    console.log(gameinfojson);
-    //const gameFile = await fetchGame("flashpoint", id, `https://download.unstable.life/gib-roms/Games/${id}.zip`);
-    res.json({ gameFile: gameinfojson.launchCommand });
+    if (gameinfo.ok) {
+      const gameinfojson = await gameinfo.json();
+      console.log(gameinfojson);
+      //const gameFile = await fetchGame("flashpoint", id, `https://download.unstable.life/gib-roms/Games/${id}-${utcMilli}.zip`);
+      res.json({
+        uuid: gameinfojson.id,
+        title: gameinfojson.title,
+        utcMilli: gameinfojson.utcMilli,
+        extreme: gameinfojson.extreme,
+        gameFile: gameinfojson.launchCommand,
+        gameLocationOnZip: decodeURIComponent('content/' + new URL(gameinfojson.launchCommand).hostname + new URL(gameinfojson.launchCommand).pathname),
+        gameFile2: `https://download.unstable.life/gib-roms/Games/${gameinfojson.uuid}-${gameinfojson.utcMilli}.zip`,//https://download.unstable.life/gib-roms/Games/001485ad-b206-4e72-a44d-605d836afe6c-1630664499395.zip
+      });
+    } else {
+      res.status(404).json({ error: "Failed to fetch game, game is probably not found" });
+    }
   } else {
     res.status(400).json({ error: "Invalid provider" });
   };
