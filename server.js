@@ -40,9 +40,7 @@ async function fetchGame(provider, id, url) {
   if (provider === "armorgames") {
     if (fs.existsSync(`debug/${id}.html`)) {
       console.log("File exists");
-      const gameFile = cheerio
-        .load(await fs.readFile(`debug/${id}.html`))('param[name="movie"]')
-        .attr("value");
+      const gameFile = cheerio.load(await fs.readFile(`debug/${id}.html`))('param[name="movie"]').attr("value");
       return gameFile;
     } else if (!fs.existsSync(`debug/${id}.json`)) {
       const response = await fetch(url);
