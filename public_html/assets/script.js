@@ -27,8 +27,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     gameElement.innerHTML = `
                         <h3>${result.title}</h3>
                         <p>Provider: Flashpoint</p>
+                        <img loading="lazy" src="${result.cover}" alt="${result.title} Cover"><br/>
                         <button><a onclick="playFlashpoint('${result.id}', '${result.title}')" target="_blank">Play Game</a></button>
-                        <img loading="lazy" src="${result.cover}" alt="${result.title} Cover">
                     `;
                     searchResultsSection.appendChild(gameElement);
                     return;
@@ -36,7 +36,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     gameElement.innerHTML = `
                     <h3>${result.title}</h3>
                     <p>Provider: Armor Games</p>
-                    <img loading="lazy" src="${result.cover}" alt="${result.title} Cover">
+                    <img loading="lazy" src="${result.cover}" alt="${result.title} Cover"><br/>
                     <button><a onclick="playArmor('${result.id}', '${result.gameUrl}')" target="_blank">Play Game</a></button>
                 `;
                 }
