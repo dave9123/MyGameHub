@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <script type="module">
+            import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+            import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-analytics.js";
+            // TODO: Add SDKs for Firebase products that you want to use
+            // https://firebase.google.com/docs/web/setup#available-libraries
+            const firebaseConfig = {
+              apiKey: "AIzaSyDLHaeZMNHqLBicQVCE5YGr-Wp24LK8v6U",
+              authDomain: "mygamehub-485c0.firebaseapp.com",
+              projectId: "mygamehub-485c0",
+              storageBucket: "mygamehub-485c0.appspot.com",
+              messagingSenderId: "816072574701",
+              appId: "1:816072574701:web:9af72ace186c29b6e86ee4",
+              measurementId: "G-M02XGW6R30"
+            };
+            const app = initializeApp(firebaseConfig);
+            const analytics = getAnalytics(app);
+        </script>
+        <link rel="stylesheet" type="text/css" href="assets/styles.css">
+        <title>MyGameHub</title>
+        <!--<script src="assets/script.js"></script>-->
+    </head>
+    <body>
+        <div class="navbar">
+            <a href="/"><img src="assets/logo-256.jpg"></a>
+            <div class="right-navbar">
+                <a href="developers">Developers</a>
+                <a href="documentation">Documentation</a>
+                <a href="settings">Settings</a>
+                <a href="login">Login</a>
+            </div>
+        </div>
+        <div class="content-container">
+            <container>
+                <h3>Settings</h3>
+                <form class="settings" id="settings" onsubmit="return update(event);">
+                    <p>Use Flashpoint Zip <select id="flashpointZip" name="flashpointZip">
+                        <option value="true">Yes</option>
+                        <option value="false">No</option>
+                    </select></p>
+                </form>
+            </container>
+        </div>
+        <script>
+            document.getElementById("flashpointZip").value = localStorage.getItem("useflashpointzip");
+            function update(event) {
+                event.preventDefault();
+                useflashpointzip = document.getElementById("flashpointZip").value
+                if (useflashpointzip === "true") {
+                    localStorage.setItem("useflashpointzip", "true");
+                } else if (useflashpointzip === "false") {
+                    localStorage.setItem("useflashpointzip", "false");
+                } else {
+                    alert("An error occurred. Please try again.")
+                }
+            }
+            document.getElementById("settings").addEventListener("change", update);
+        </script>
+    </body>
+</html>

@@ -57,8 +57,9 @@ async function playFlashpoint(id, gameName) {
             if (response.status == 404) {
                 alert('Game not found. Please report this to the developer.');
             } else {
-                gamePath = await response.json();
-                localStorage.setItem('gamePath', gamePath);
+                response = await response.json();
+                localStorage.setItem('gamePath', response.gameFile);
+                localStorage.setItem('zipPath', response.gameFile2);
                 window.location.href = 'flash';
             }
         });
