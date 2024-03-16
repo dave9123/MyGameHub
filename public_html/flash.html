@@ -10,13 +10,12 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
         const firebaseConfig = {
-          apiKey: "AIzaSyDLHaeZMNHqLBicQVCE5YGr-Wp24LK8v6U",
-          authDomain: "mygamehub-485c0.firebaseapp.com",
-          projectId: "mygamehub-485c0",
-          storageBucket: "mygamehub-485c0.appspot.com",
-          messagingSenderId: "816072574701",
-          appId: "1:816072574701:web:9af72ace186c29b6e86ee4",
-          measurementId: "G-M02XGW6R30"
+            apiKey: "AIzaSyBBT799FTeNCPGm3-HNzAUg2I1XWf4BAas",
+            authDomain: "mygamehub-d13d8.firebaseapp.com",
+            projectId: "mygamehub-d13d8",
+            storageBucket: "mygamehub-d13d8.appspot.com",
+            messagingSenderId: "339025715622",
+            appId: "1:339025715622:web:f42547030db409a4b16f67"
         };
         const app = initializeApp(firebaseConfig);
     </script>
@@ -59,29 +58,22 @@
         document.querySelector("#player").append(player);
         (async () => {
             if (localStorage.getItem('useflashpointzip') === 'true') {
-                async function loadGameFromZip() {
+                (async () => {
                     try {
                         const zipPath = localStorage.getItem('zipPath');
                         if (!zipPath) {
                             throw new Error('Zip path not found in localStorage.');
                             alert('An error occurred.');
                         }
-                        const zip = await JSZip.loadAsync(await fetch(zipPath).then(r => r.blob()));
-                        const gameFileData = await zip.file('game.swf').async('blob');
+                        const zip = await JSZip.loadAsync(await fetch(`/proxy/?url=${zipPath}`).then(r => r.blob()));
+                        const gameFileData = await zip.file(`content/${new URL(gamePath).hostname}/${new URL(gamePath).pathname}`).async('blob');
                         const gameBlobUrl = URL.createObjectURL(gameFileData);
                         player.load(gameBlobUrl);
                     } catch (error) {
                         console.error('Error loading game from zip:', error);
                         alert('An error occurred. Please try again.');
                     }
-                }
-                if (url.original) {
-                    gameFile = await gameZip.file(decodeURIComponent('content/' + url.original.hostname + url.original.pathname));
-                    const gameBlobUrl = URL.createObjectURL(gameFile);
-                    player.load(gameBlobUrl);
-                } else {
-                    alert('An error occurred. Please try again.');
-                }
+                })();
             } else if (localStorage.getItem('useflashpointzip') === 'false') {
                 player.load(gamePath);
             } else {

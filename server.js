@@ -250,6 +250,31 @@ app.get('/api/getgame', async (req, res) => {
   };
 });
 
+app.use('/proxy', async (req, res) => {
+  const url = req.query.url;
+  if (url === undefined) {
+    return res.status(400).json({ error: "URL is required" });
+  } else if (!url.startsWith("https://download.unstable.life/gib-roms/Games/")) {
+    return res.status(400).json({ error: "URL isn't invalid" });
+  } else if (!url.endsWith(".zip")) {
+    return res.status(400).json({ error: "URL isn't invalid" });
+  } else {
+    try {
+      response = await fetch(url);
+      if (response.ok) {
+        res.setHeader("Access-Control-Allow-Origin", "*");
+        res.setHeader("Content-Disposition", `attachment; filename=${url.split("/").pop()}`);
+        res.send(Buffer.from(await response.arrayBuffer()));
+      } else {
+        res.status(500).json({ error: "Failed to fetch file" });
+      }
+    } catch (error) {
+      res.status(500).json({ error: error });
+      console.error(error);
+    }
+  }
+});
+
 app.use(express.static(path.join(__dirname, "public_html")));
 
 app.use(Sentry.Handlers.errorHandler());
