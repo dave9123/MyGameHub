@@ -1,5 +1,5 @@
 # My Game Hub
-Flash games player, originally made for Art Class website coding event
+Flash games player
 # API Reference 
 ### [/api/search] Searching
 Example: `http://localhost/api/search?q=game`<br/>

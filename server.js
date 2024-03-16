@@ -1,12 +1,10 @@
 require("dotenv").config();
 const express = require("express");
 const app = express();
-const firebaseAdmin = require("firebase-admin");
 const Sentry = require("@sentry/node");
 const path = require("path");
 const fs = require("fs-extra");
 const cheerio = require("cheerio");
-const session = require("express-session");
 const port = process.env.PORT || 3000;
 
 if (process.env.SENTRY_DSN !== undefined) {
@@ -22,18 +20,6 @@ if (process.env.SENTRY_DSN !== undefined) {
 }
 app.use(Sentry.Handlers.requestHandler());
 app.use(Sentry.Handlers.tracingHandler());
-
-app.use(
-  session({
-    secret: process.env.SESSION_SECRET,
-    resave: false,
-    saveUninitialized: true,
-    cookie: {
-      secure: process.env.SECURE,
-      maxAge: 24 * 60 * 60 * 7 * 1000, // 1 week
-    },
-  })
-);
 
 async function fetchGame(provider, id, url) {
   console.log(`Fetching game file from ${provider} with id ${id}`);
@@ -71,78 +57,78 @@ async function fetchGame(provider, id, url) {
 //  }
 //});
 
-app.get("/api/user", async (req, res) => {
-  const accessToken = req.session.accessToken;
-  const refreshToken = req.session.refreshToken;
-  const accessTokenExpiresAt = req.session.accessTokenExpiresAt;
+//app.get("/api/user", async (req, res) => {
+//  const accessToken = req.session.accessToken;
+//  const refreshToken = req.session.refreshToken;
+//  const accessTokenExpiresAt = req.session.accessTokenExpiresAt;
+//
+//  if (!accessToken || !refreshToken || Date.now() > accessTokenExpiresAt) {
+//    const token = await fetch("https://discord.com/api/oauth2/token", {
+//      method: "POST",
+//      headers: {
+//        "Content-Type": "application/x-www-form-urlencoded",
+//      },
+//      body: new URLSearchParams({
+//        client_id: process.env.DISCORD_CLIENT_ID,
+//        client_secret: process.env.DISCORD_CLIENT_SECRET,
+//        grant_type: "refresh_token",
+//        refresh_token: refreshToken,
+//        scope: "identify",
+//      }),
+//    });
+//    console.log(token);
+//    const tokenJson = await token.json();
+//    console.log(tokenJson);
+//  }
+//});
 
-  if (!accessToken || !refreshToken || Date.now() > accessTokenExpiresAt) {
-    const token = await fetch("https://discord.com/api/oauth2/token", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-      },
-      body: new URLSearchParams({
-        client_id: process.env.DISCORD_CLIENT_ID,
-        client_secret: process.env.DISCORD_CLIENT_SECRET,
-        grant_type: "refresh_token",
-        refresh_token: refreshToken,
-        scope: "identify",
-      }),
-    });
-    console.log(token);
-    const tokenJson = await token.json();
-    console.log(tokenJson);
-  }
-});
+//app.get("/auth/discord", (req, res) => {
+//  res.redirect(
+//    `https://discord.com/api/oauth2/authorize?client_id=${process.env.DISCORD_CLIENT_ID}&redirect_uri=${process.env.BASE_PATH}/auth/discord/callback&response_type=code&scope=identify`
+//  );
+//});
 
-app.get("/auth/discord", (req, res) => {
-  res.redirect(
-    `https://discord.com/api/oauth2/authorize?client_id=${process.env.DISCORD_CLIENT_ID}&redirect_uri=${process.env.BASE_PATH}/auth/discord/callback&response_type=code&scope=identify`
-  );
-});
-
-app.get("/auth/discord/callback", async (req, res) => {
-  const code = req.query.code;
-  if (!code) {
-    return res.status(400).send("Code is required");
-  }
-  const response = await fetch("https://discord.com/api/oauth2/token", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/x-www-form-urlencoded",
-    },
-    body: new URLSearchParams({
-      client_id: process.env.DISCORD_CLIENT_ID,
-      client_secret: process.env.DISCORD_CLIENT_SECRET,
-      grant_type: "authorization_code",
-      code,
-      redirect_uri: `${process.env.BASE_PATH}/auth/discord/callback`,
-      scope: "identify",
-    }),
-  });
-  const json = await response.json();
-  console.log(json);
-  const userResponse = await fetch("https://discord.com/api/users/@me", {
-    headers: {
-      Authorization: `${json.token_type} ${json.access_token}`,
-    },
-  });
-  const userJson = await userResponse.json();
-  console.log(userJson);
-  res.cookie("refreshToken", json.refresh_token, {
-    secure: process.env.SECURE,
-    maxAge: 24 * 60 * 60 * 7 * 1000, // 1 week
-  });
-  res.send(`
-    <div style="margin: 300px auto; max-width: 400px; display: flex; flex-direction: column; align-items: center; font-family: sans-serif;">
-    <h3>Welcome, ${userJson.global_name}</h3>
-    <script>
-      window.location.replace('/');
-    </script>
-    </div>
-  `);
-});
+//app.get("/auth/discord/callback", async (req, res) => {
+//  const code = req.query.code;
+//  if (!code) {
+//    return res.status(400).send("Code is required");
+//  }
+//  const response = await fetch("https://discord.com/api/oauth2/token", {
+//    method: "POST",
+//    headers: {
+//      "Content-Type": "application/x-www-form-urlencoded",
+//    },
+//    body: new URLSearchParams({
+//      client_id: process.env.DISCORD_CLIENT_ID,
+//      client_secret: process.env.DISCORD_CLIENT_SECRET,
+//      grant_type: "authorization_code",
+//      code,
+//      redirect_uri: `${process.env.BASE_PATH}/auth/discord/callback`,
+//      scope: "identify",
+//    }),
+//  });
+//  const json = await response.json();
+//  console.log(json);
+//  const userResponse = await fetch("https://discord.com/api/users/@me", {
+//    headers: {
+//      Authorization: `${json.token_type} ${json.access_token}`,
+//    },
+//  });
+//  const userJson = await userResponse.json();
+//  console.log(userJson);
+//  res.cookie("refreshToken", json.refresh_token, {
+//    secure: process.env.SECURE,
+//    maxAge: 24 * 60 * 60 * 7 * 1000, // 1 week
+//  });
+//  res.send(`
+//    <div style="margin: 300px auto; max-width: 400px; display: flex; flex-direction: column; align-items: center; font-family: sans-serif;">
+//    <h3>Welcome, ${userJson.global_name}</h3>
+//    <script>
+//      window.location.replace('/');
+//    </script>
+//    </div>
+//  `);
+//});
 
 app.get("/flash", (req, res) => {
   res.sendFile(path.join(__dirname, "public_html", "flash.html"));
@@ -153,8 +139,11 @@ app.get("/documentation", (req, res) => {
 });
 
 app.get("/login", (req, res) => {
-  res.redirect("/auth/discord");
-  //res.sendFile(path.join(__dirname, "public_html", "login.html"));
+  res.sendFile(path.join(__dirname, "public_html", "login.html"));
+});
+
+app.get("/signup", (req, res) => {
+  res.sendFile(path.join(__dirname, "public_html", "signup.html"));
 });
 
 app.get("/developers", (req, res) => {
@@ -260,6 +249,7 @@ app.use('/proxy', async (req, res) => {
     return res.status(400).json({ error: "URL isn't invalid" });
   } else {
     try {
+      console.log(`Fetching file from ${url}`)
       response = await fetch(url);
       if (response.ok) {
         res.setHeader("Access-Control-Allow-Origin", "*");

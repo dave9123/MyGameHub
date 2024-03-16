@@ -65,9 +65,15 @@
                             throw new Error('Zip path not found in localStorage.');
                             alert('An error occurred.');
                         }
-                        const zip = await JSZip.loadAsync(await fetch(`/proxy/?url=${zipPath}`).then(r => r.blob()));
-                        const gameFileData = await zip.file(`content/${new URL(gamePath).hostname}/${new URL(gamePath).pathname}`).async('blob');
-                        const gameBlobUrl = URL.createObjectURL(gameFileData);
+                        const zip = await JSZip.loadAsync(await fetch(`proxy/?url=${zipPath}`).then(r => r.blob()));
+                        console.log(Object.keys(zip.files));
+                        const gameFileData = await zip.file(`content/${new URL(gamePath).hostname}${new URL(gamePath).pathname}`);
+                        console.log(`Searching for: content/${new URL(gamePath).hostname}${new URL(gamePath).pathname}`);
+                        if (gameFileData === null) {
+                            throw new Error(`File not found in zip: ${zipPath}`);
+                            alert('An error occurred.');
+                        }
+                        const gameBlobUrl = URL.createObjectURL(await gameFileData.async('blob'));
                         player.load(gameBlobUrl);
                     } catch (error) {
                         console.error('Error loading game from zip:', error);

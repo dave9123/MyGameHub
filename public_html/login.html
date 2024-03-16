@@ -5,6 +5,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <script type="module">
             import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+
             const firebaseConfig = {
                 apiKey: "AIzaSyBBT799FTeNCPGm3-HNzAUg2I1XWf4BAas",
                 authDomain: "mygamehub-d13d8.firebaseapp.com",
@@ -14,6 +15,7 @@
                 appId: "1:339025715622:web:f42547030db409a4b16f67"
             };
             const app = initializeApp(firebaseConfig);
+
         </script>
         <link rel="stylesheet" type="text/css" href="assets/styles.css">
         <title>MyGameHub</title>
@@ -31,12 +33,14 @@
         </div>
         <div class="content-container">
             <container>
-                <form class="search-bar" onsubmit="return searchGames(event);">
-                    <input type="text" name="search" placeholder="Search games...">
-                    <button type="submit">Search</button>
+                <h1>Login</h1>
+                <form id="login-form" onsubmit="return login(event);">
+                    <input type="text" name="username" placeholder="Username" required><br/>
+                    <input type="password" name="password" placeholder="Password" required><br/>
+                    <input type="submit" value="Login">
                 </form>
+                <p>Don't have an account? <a href="signup">Sign Up</a></p>
             </container>
-            <section class="searchresults" id="searchresults"></section>
         </div>
     </body>
 </html>
