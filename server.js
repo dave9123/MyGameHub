@@ -138,13 +138,9 @@ app.get("/documentation", (req, res) => {
   res.sendFile(path.join(__dirname, "public_html", "documentation.html"));
 });
 
-app.get("/login", (req, res) => {
-  res.sendFile(path.join(__dirname, "public_html", "login.html"));
-});
-
-app.get("/signup", (req, res) => {
-  res.sendFile(path.join(__dirname, "public_html", "signup.html"));
-});
+//app.get("/login", (req, res) => {
+//  res.sendFile(path.join(__dirname, "public_html", "login.html"));
+//});
 
 app.get("/developers", (req, res) => {
   res.sendFile(path.join(__dirname, "public_html", "developers.html"));

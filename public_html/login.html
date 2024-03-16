@@ -5,7 +5,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <script type="module">
             import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-
+            import { getAuth, isSignInWithEmailLink, signInWithEmailLink } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
             const firebaseConfig = {
                 apiKey: "AIzaSyBBT799FTeNCPGm3-HNzAUg2I1XWf4BAas",
                 authDomain: "mygamehub-d13d8.firebaseapp.com",
@@ -15,11 +15,71 @@
                 appId: "1:339025715622:web:f42547030db409a4b16f67"
             };
             const app = initializeApp(firebaseConfig);
-
+            const auth = getAuth();
+            if (isSignInWithEmailLink(window.location.href)) {
+                let email = window.localStorage.getItem('emailForSignIn');
+                if (!email) {
+                    email = window.prompt('Please provide your email for confirmation');
+                }
+                signInWithEmailLink(auth, email, window.location.href)
+                    .then((result) => {
+                        window.localStorage.removeItem('emailForSignIn');
+                        window.location.href = '/';
+                    })
+                    .catch((error) => {
+                        console.error(error);
+                        document.getElementById('error').innerText = error;
+                    });
+            }
+            function sendEmailLink() {
+                alert("Recieved click")
+                let email = document.getElementById('email').value;
+                auth.sendSignInLinkToEmail(email, {
+                    url: window.location.href,
+                    handleCodeInApp: true
+                }).then(() => {
+                        window.localStorage.setItem('emailForSignIn', email);
+                        localStorage.setItem('emailForSignIn', email);
+                        alert('An email has been sent to ' + email + '. Please check your email to sign in.');
+                }).catch((error) => {
+                        console.error(error);
+                        document.getElementById('error').innerText = error;
+                        alert('An error occurred.');
+                });
+            };
         </script>
         <link rel="stylesheet" type="text/css" href="assets/styles.css">
-        <title>MyGameHub</title>
+        <title>MyGameHub - Login</title>
         <script src="assets/script.js"></script>
+        <style>
+            .login-form {
+                background-color: white;
+                padding: 20px;
+                border-radius: 5px;
+                box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+                justify-content: center;
+                align-items: center;
+            }
+            .login-form input {
+                width: 100%;
+                padding: 10px;
+                margin-bottom: 10px;
+                border-radius: 5px;
+                border: 1px solid #ddd;
+            }
+            .login-form button {
+                width: 100%;
+                padding: 10px;
+                background-color: #007bff;
+                color: white;
+                border: none;
+                border-radius: 5px;
+                cursor: pointer;
+            }
+            .login-form button:hover {
+                background-color: #0056b3;
+            }
+        </style>
     </head>
     <body>
         <div class="navbar">
@@ -33,13 +93,12 @@
         </div>
         <div class="content-container">
             <container>
-                <h1>Login</h1>
-                <form id="login-form" onsubmit="return login(event);">
-                    <input type="text" name="username" placeholder="Username" required><br/>
-                    <input type="password" name="password" placeholder="Password" required><br/>
-                    <input type="submit" value="Login">
-                </form>
-                <p>Don't have an account? <a href="signup">Sign Up</a></p>
+                <div class="login-form">
+                    <h2>Login</h2>
+                    <input type="email" id="email" placeholder="Email">
+                    <button id="send-email-link" onclick="sendEmailLink();">Send Email Link</button>
+                    <p id="error"></p>
+                </div>
             </container>
         </div>
     </body>
