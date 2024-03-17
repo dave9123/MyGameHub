@@ -261,8 +261,10 @@ app.use('/proxy', async (req, res) => {
   }
 });
 
-app.get("/auth/callback", async(req, res) => {
-  //TODO: Implement login with Firebase
+app.get("/auth/callback", async (req, res) => {
+  if (req.query.mode === "action" && req.query.oobCode !== undefined) {
+    res.send(``);
+  }
 });
 
 app.use(express.static(path.join(__dirname, "public_html")));

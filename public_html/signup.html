@@ -5,7 +5,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <script type="module">
             import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-            import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+            import { getAuth, isSignInWithEmailLink, signInWithEmailLink } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
             const firebaseConfig = {
                 apiKey: "AIzaSyBBT799FTeNCPGm3-HNzAUg2I1XWf4BAas",
                 authDomain: "mygamehub-d13d8.firebaseapp.com",
@@ -16,23 +16,6 @@
             };
             const app = initializeApp(firebaseConfig);
             const auth = getAuth(app);
-            function login() {
-                const email = document.getElementById("email").value;
-                const password = document.getElementById("password").value;
-                signInWithEmailAndPassword(auth, email, password)
-                    .then((userCredential) => {
-                        const user = userCredential.user;
-                        alert(user);
-                        window.location.href = "/";
-                    })
-                    .catch((error) => {
-                        const errorCode = error.code;
-                        const errorMessage = error.message;
-                        document.getElementById("error").innerText = error;
-                        alert(error);
-                    });
-            };
-            document.getElementById("login").addEventListener("click", login);
         </script>
         <link rel="stylesheet" type="text/css" href="assets/styles.css">
         <title>MyGameHub - Login</title>
@@ -79,10 +62,10 @@
         <div class="content-container">
             <container>
                 <form class="login-form" onsubmit="event.preventDefault();">
-                    <h2>Login</h2>
+                    <h2>Sign Up</h2>
                     <input type="email" id="email" placeholder="Email">
                     <input type="password" id="password" placeholder="Password">
-                    <button id="login">Login</button>
+                    <button id="login">Sign Up</button>
                     <p id="error"></p>
                 </form>
             </container>
