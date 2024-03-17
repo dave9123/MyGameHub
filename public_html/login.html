@@ -15,22 +15,7 @@
                 appId: "1:339025715622:web:f42547030db409a4b16f67"
             };
             const app = initializeApp(firebaseConfig);
-            const auth = getAuth();
-            if (isSignInWithEmailLink(window.location.href)) {
-                let email = window.localStorage.getItem('emailForSignIn');
-                if (!email) {
-                    email = window.prompt('Please provide your email for confirmation');
-                }
-                signInWithEmailLink(auth, email, window.location.href)
-                    .then((result) => {
-                        window.localStorage.removeItem('emailForSignIn');
-                        window.location.href = '/';
-                    })
-                    .catch((error) => {
-                        console.error(error);
-                        document.getElementById('error').innerText = error;
-                    });
-            }
+            const auth = getAuth(app);
             function sendEmailLink() {
                 alert("Recieved click")
                 let email = document.getElementById('email').value;
@@ -47,6 +32,7 @@
                         alert('An error occurred.');
                 });
             };
+            document.getElementById('send-email-link').addEventListener('click', sendEmailLink);
         </script>
         <link rel="stylesheet" type="text/css" href="assets/styles.css">
         <title>MyGameHub - Login</title>
@@ -93,12 +79,12 @@
         </div>
         <div class="content-container">
             <container>
-                <div class="login-form">
+                <form class="login-form">
                     <h2>Login</h2>
                     <input type="email" id="email" placeholder="Email">
-                    <button id="send-email-link" onclick="sendEmailLink();">Send Email Link</button>
+                    <button id="send-email-link">Send Email Link</button>
                     <p id="error"></p>
-                </div>
+                </form>
             </container>
         </div>
     </body>

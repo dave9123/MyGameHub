@@ -261,6 +261,10 @@ app.use('/proxy', async (req, res) => {
   }
 });
 
+app.get("/auth/callback", async(req, res) => {
+  //TODO: Implement login with Firebase
+});
+
 app.use(express.static(path.join(__dirname, "public_html")));
 
 app.use(Sentry.Handlers.errorHandler());
