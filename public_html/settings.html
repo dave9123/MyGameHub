@@ -39,7 +39,7 @@
             </container>
         </div>
         <script>
-            document.getElementById("flashpointZip").value = localStorage.getItem("useflashpointzip");
+            document.getElementById("flashpointZip").value = localStorage.getItem("useflashpointzip") || false;
             function update(event) {
                 event.preventDefault();
                 useflashpointzip = document.getElementById("flashpointZip").value

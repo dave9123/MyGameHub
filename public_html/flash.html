@@ -56,7 +56,7 @@
         player.config.allowScriptAccess = true;
         document.querySelector("#player").append(player);
         (async () => {
-            if (localStorage.getItem('useflashpointzip') === 'true') {
+            if (localStorage.getItem('useflashpointzip') === 'true' && localStorage.getItem('provider') === 'flashpoint') {
                 (async () => {
                     try {
                         const zipPath = localStorage.getItem('zipPath');
@@ -79,10 +79,7 @@
                         alert('An error occurred. Please try again.');
                     }
                 })();
-            } else if (localStorage.getItem('useflashpointzip') === 'false') {
-                player.load(gamePath);
             } else {
-                alert("Using Flashpoint Zip is not set. Using the default setting.")
                 player.load(gamePath);
             };
         })();

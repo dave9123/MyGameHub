@@ -58,6 +58,7 @@ async function playFlashpoint(id, gameName) {
                 alert('Game not found. Please report this to the developer.');
             } else {
                 response = await response.json();
+                localStorage.setItem('provider', 'flashpoint')
                 localStorage.setItem('gamePath', response.gameFile);
                 localStorage.setItem('zipPath', response.gameFile2);
                 window.location.href = 'flash';
@@ -75,6 +76,7 @@ async function playArmor(id, url) {
                 alert('Game not found. Please report this to the developer.');
             } else if (response.status === 200) {
                 response = await response.json();
+                localStorage.setItem('provider', 'armorgames');
                 localStorage.setItem('gamePath', response.gameFile);
                 window.location.href = 'flash';
             }
