@@ -60,7 +60,7 @@
                 (async () => {
                     try {
                         const zipPath = localStorage.getItem('zipPath');
-                        if (!zipPath) {
+                        if (zipPath === undefined) {
                             throw new Error('Zip path not found in localStorage.');
                             alert('An error occurred.');
                         }
