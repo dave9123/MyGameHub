@@ -86,4 +86,8 @@ body {
 
 .search-result img {
     object-fit: cover;
+    max-height: 200px;
+    max-width:90%;
+    height: auto;
+    width: fit;
 }
