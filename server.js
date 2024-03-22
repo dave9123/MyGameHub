@@ -5,7 +5,9 @@ const Sentry = require("@sentry/node");
 const path = require("path");
 const fs = require("fs-extra");
 const cheerio = require("cheerio");
+const mysql = require("mysql2");
 const port = process.env.PORT || 3000;
+const database = require("./handler/database");
 
 if (process.env.SENTRY_DSN !== undefined) {
   Sentry.init({
