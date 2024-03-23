@@ -161,21 +161,26 @@ app.get("/auth/discord/callback", async (req, res) => {
     });
     const userJson = await userResponse.json();
     console.log(userJson);
-    token = authentication.authenticateUser(userJson);
-    if (process.env.SECURE === "true" && process.env.SESSION_SECRET !== undefined) {
-      res.cookie("token", token, { httpOnly: false, secure: true, maxAge: 1000 * 60 * 60 * 24 * 30, signed: true, secret: process.env.SESSION_SECRET});
-    } else if (process.env.SECURE === "false") {
-      res.cookie("token", token, { httpOnly: true, secure: false, maxAge: 1000 * 60 * 60 * 24 * 30, signed: true, secret: process.env.SESSION_SECRET});
+    try {
+      token = authentication.authenticateUser(userJson);
+      if (process.env.SECURE === "true" && process.env.SESSION_SECRET !== undefined) {
+        res.cookie("token", token, { httpOnly: false, secure: true, maxAge: 1000 * 60 * 60 * 24 * 30, signed: true, secret: process.env.SESSION_SECRET});
+      } else if (process.env.SECURE === "false") {
+        res.cookie("token", token, { httpOnly: true, secure: false, maxAge: 1000 * 60 * 60 * 24 * 30, signed: true, secret: process.env.SESSION_SECRET});
+      }
+      res.send(`
+        <div style="margin: 300px auto; max-width: 400px; display: flex; flex-direction: column; align-items: center;">
+          <h3>Welcome, ${userJson.global_name}</h3>
+          <script>
+            window.location.replace('/');
+          </script>
+        </div>
+      `);
+    } catch (error) {
+      console.error(error);
+      res.status(500).send("Internal server error");
     }
-    res.send(`
-      <div style="margin: 300px auto; max-width: 400px; display: flex; flex-direction: column; align-items: center;">
-        <h3>Welcome, ${userJson.global_name}</h3>
-        <script>
-          window.location.replace('/');
-        </script>
-      </div>
-    `);
-  };
+  }
 });
 
 app.get('/login', (req, res) => {
@@ -247,21 +252,63 @@ app.get("/api/search", async (req, res) => {
   }
 });
 
+app.get("/api/userprofile", async (req, res) => {
+  const token = req.signedCookies.token;
+  // unsigned
+  //const token = req.cookies.token;
+  if (token === undefined) {
+    return res.status(401).send("Unauthorized");
+  } else {
+    try {
+      user = await authentication.verifyUser(token);
+      avatar = await user.avatar;
+      res.json({ avatar: avatar });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  }
+});
+
 app.get('/api/getgame', async (req, res) => {
   const provider = req.query.provider;
   const id = req.query.id;
+  const token = req.signedCookies.token;
   if (!provider || !id) {
     return res.status(400).json({ error: "Provider and ID are required" });
-  }
-  if (provider === "armorgames") {
+  } else if (provider === "armorgames") {
     const gameFile = await fetchGame("armorgames", id, `https://armorgames.com/play/${id}`);
+    if (token !== undefined) {
+      try {
+        fs.readFile('cache/armorgames.json', 'utf8', async (err, data) => {
+          if (err !== undefined) {
+            console.error(err);
+          } else {
+            const gameResult = JSON.parse(data).filter(game => Number(game.game_id) === Number(req.query.game_id))
+            if (gameResult.length > 0) {
+              await gameactivity.storeGameActivity(token, gameResult.label, provider, id);
+            } else {
+              console.log("Game not found in cache");
+            }
+          }
+        });
+      } catch (error) {
+        console.error(error);
+      }
+    }
     res.json({ gameFile: gameFile });
   } else if (provider === "flashpoint") {
     const gameinfo = await fetch(`https://ooooooooo.ooo/get?id=${id}`)
     if (gameinfo.ok) {
       const gameinfojson = await gameinfo.json();
       console.log(gameinfojson);
-      //const gameFile = await fetchGame("flashpoint", id, `https://download.unstable.life/gib-roms/Games/${id}-${utcMilli}.zip`);
+      if (token !== undefined) {
+        try {
+          await gameactivity.storeGameActivity(token, gameinfojson.title, provider, id);
+        } catch (error) {
+          console.error(error);
+        }
+      }
       res.json({
         uuid: gameinfojson.id,
         title: gameinfojson.title,
@@ -272,7 +319,7 @@ app.get('/api/getgame', async (req, res) => {
         gameFile2: `https://download.unstable.life/gib-roms/Games/${gameinfojson.uuid}-${gameinfojson.utcMilli}.zip`,//https://download.unstable.life/gib-roms/Games/001485ad-b206-4e72-a44d-605d836afe6c-1630664499395.zip
       });
     } else {
-      res.status(404).json({ error: "Failed to fetch game, game is probably not found" });
+      res.status(404).json({ error: "Failed to fetch game, game might not exist" });
     }
   } else {
     res.status(400).json({ error: "Invalid provider" });

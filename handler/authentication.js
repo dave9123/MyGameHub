@@ -8,11 +8,13 @@ async function authenticateUser(json) {
     } else {
         const user = await database.poolQuery('SELECT * FROM authentication WHERE userid = ?', [json.id]);
         console.log(user);
-        if (user.length > 1 && user.length < 3) {
+        if (user.length[0] > 1 && user.length[0] < 3) {
+            console.log("User not found, creating new user...")
             await database.poolQuery('INSERT INTO authentication (userid, username, globalname, avatar) VALUES (?, ?, ?, ?)', [json.id, json.username, json.global_name, `https://cdn.discordapp.com/avatars/${json.id}/${json.avatar}.png`]);
-        } else if (user.length > 2) {
+        } else if (user.length[0] > 2) {
             throw new Error('Multiple users found with the same ID, more like wtf?');
         } else {
+            console.log("User already exists, updating information...")
             await database.poolQuery('UPDATE authentication SET username = ?, globalname = ?, avatar = ? WHERE userid = ?', [json.username, json.global_name, `https://cdn.discordapp.com/avatars/${json.id}/${json.avatar}.png`, json.id]);
         }
         const token = jwt.sign({ id: json.id }, process.env.JWT_SECRET, { expiresIn: '30d' }); // Expires in 30 days
@@ -33,4 +35,4 @@ async function verifyUser(token) {
     }
 };
 
-module.exports = { authenticateUser, verifyUser };
+module.exports = { authenticateUser, verifyUser }

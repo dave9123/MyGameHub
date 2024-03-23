@@ -6,6 +6,7 @@ const pool = mysql.createPool({
     password: process.env.DB_PASS,
     database: process.env.DB_NAME
 });
+var isDBOnline = false;
 
 async function dbInit() {
     try {
@@ -28,8 +29,10 @@ async function dbInit() {
             )
         `);
         console.log("Database seems to be accessible.");
+        isDBOnline = true;
     } catch(error) {
         console.log(`Database seems to be unaccessible,`, error);
+        isDBOnline = false;
     }
 }
 
@@ -38,11 +41,13 @@ const poolQuery = async (...args) => {
         return await pool.query(...args);
     } catch (err) {
         console.error(err);
+        dbInit();
         throw new Error('Error querying the database: ' + err);
     }
 };
 
 module.exports = {
     dbInit,
-    poolQuery
+    poolQuery,
+    isDBOnline
 };
