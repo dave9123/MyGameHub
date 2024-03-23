@@ -18,6 +18,14 @@ async function dbInit() {
                 avatar VARCHAR(255) NOT NULL
             )
         `);
+        await pool.query(`CREATE TABLE IF NOT EXISTS gameactivity (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                userid INT NOT NULL,
+                gamename VARCHAR(255) NOT NULL,
+                provider VARCHAR(255) NOT NULL,
+                gameid VARCHAR(255) NOT NULL
+            )
+        `);
         console.log("Database seems to be accessible.");
     } catch(error) {
         console.log(`Database seems to be unaccessible,`, error);

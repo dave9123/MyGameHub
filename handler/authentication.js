@@ -19,4 +19,13 @@ async function authenticateUser(json) {
     }
 };
 
-module.exports = { authenticateUser };
+async function verifyUser(token) {
+    try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        return decoded;
+    } catch (error) {
+        throw new Error('Invalid token recieved');
+    }
+};
+
+module.exports = { authenticateUser, verifyUser };
