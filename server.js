@@ -5,10 +5,12 @@ const Sentry = require("@sentry/node");
 const path = require("path");
 const fs = require("fs-extra");
 const cheerio = require("cheerio");
-const mysql = require("mysql2");
+const cookieParser = require("cookie-parser");
+const authentication = require('./handler/authentication');
+const database = require('./handler/database');
 const port = process.env.PORT || 3000;
-const database = require("./handler/database");
 
+database.dbInit();
 if (process.env.SENTRY_DSN !== undefined) {
   Sentry.init({
     dsn: process.env.SENTRY_DSN,
@@ -22,6 +24,7 @@ if (process.env.SENTRY_DSN !== undefined) {
 }
 app.use(Sentry.Handlers.requestHandler());
 app.use(Sentry.Handlers.tracingHandler());
+app.use(cookieParser());
 
 async function fetchGame(provider, id, url) {
   console.log(`Fetching game file from ${provider} with id ${id}`);
@@ -84,53 +87,52 @@ async function fetchGame(provider, id, url) {
 //  }
 //});
 
-//app.get("/auth/discord", (req, res) => {
-//  res.redirect(
-//    `https://discord.com/api/oauth2/authorize?client_id=${process.env.DISCORD_CLIENT_ID}&redirect_uri=${process.env.BASE_PATH}/auth/discord/callback&response_type=code&scope=identify`
-//  );
-//});
+app.get("/auth/discord", (req, res) => {
+  res.redirect(`https://discord.com/api/oauth2/authorize?client_id=${process.env.DISCORD_CLIENT_ID}&redirect_uri=${process.env.BASE_PATH}/auth/discord/callback&response_type=code&scope=identify`);
+});
 
-//app.get("/auth/discord/callback", async (req, res) => {
-//  const code = req.query.code;
-//  if (!code) {
-//    return res.status(400).send("Code is required");
-//  }
-//  const response = await fetch("https://discord.com/api/oauth2/token", {
-//    method: "POST",
-//    headers: {
-//      "Content-Type": "application/x-www-form-urlencoded",
-//    },
-//    body: new URLSearchParams({
-//      client_id: process.env.DISCORD_CLIENT_ID,
-//      client_secret: process.env.DISCORD_CLIENT_SECRET,
-//      grant_type: "authorization_code",
-//      code,
-//      redirect_uri: `${process.env.BASE_PATH}/auth/discord/callback`,
-//      scope: "identify",
-//    }),
-//  });
-//  const json = await response.json();
-//  console.log(json);
-//  const userResponse = await fetch("https://discord.com/api/users/@me", {
-//    headers: {
-//      Authorization: `${json.token_type} ${json.access_token}`,
-//    },
-//  });
-//  const userJson = await userResponse.json();
-//  console.log(userJson);
-//  res.cookie("refreshToken", json.refresh_token, {
-//    secure: process.env.SECURE,
-//    maxAge: 24 * 60 * 60 * 7 * 1000, // 1 week
-//  });
-//  res.send(`
-//    <div style="margin: 300px auto; max-width: 400px; display: flex; flex-direction: column; align-items: center; font-family: sans-serif;">
-//    <h3>Welcome, ${userJson.global_name}</h3>
-//    <script>
-//      window.location.replace('/');
-//    </script>
-//    </div>
-//  `);
-//});
+app.get("/auth/discord/callback", async (req, res) => {
+  const code = req.query.code;
+  if (!code) {
+    return res.status(400).send("Code is required");
+  }
+  const response = await fetch("https://discord.com/api/oauth2/token", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded",
+    },
+    body: new URLSearchParams({
+      client_id: process.env.DISCORD_CLIENT_ID,
+      client_secret: process.env.DISCORD_CLIENT_SECRET,
+      grant_type: "authorization_code",
+      code,
+      redirect_uri: `${process.env.BASE_PATH}/auth/discord/callback`,
+      scope: "identify",
+    }),
+  });
+  if (!response.ok) {
+    return res.status(400).send("Token invalid");
+  } else {
+    const json = await response.json();
+    console.log(json);
+    const userResponse = await fetch("https://discord.com/api/users/@me", {
+      headers: {
+        Authorization: `${json.token_type} ${json.access_token}`,
+      },
+    });
+    const userJson = await userResponse.json();
+    console.log(userJson);
+    token = authentication.authenticateUser(userJson);
+    res.send(`
+      <div style="margin: 300px auto; max-width: 400px; display: flex; flex-direction: column; align-items: center; font-family: sans-serif;">
+        <h3>Welcome, ${userJson.global_name}</h3>
+        <script>
+          window.location.replace('/');
+        </script>
+      </div>
+    `);
+  };
+});
 
 app.get("/flash", (req, res) => {
   res.sendFile(path.join(__dirname, "public_html", "flash.html"));
@@ -260,12 +262,6 @@ app.use('/proxy', async (req, res) => {
       res.status(500).json({ error: error });
       console.error(error);
     }
-  }
-});
-
-app.get("/auth/callback", async (req, res) => {
-  if (req.query.mode === "action" && req.query.oobCode !== undefined) {
-    res.send(``);
   }
 });
 

@@ -3,37 +3,6 @@
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <script type="module">
-            import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-            import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
-            const firebaseConfig = {
-                apiKey: "AIzaSyBBT799FTeNCPGm3-HNzAUg2I1XWf4BAas",
-                authDomain: "mygamehub-d13d8.firebaseapp.com",
-                projectId: "mygamehub-d13d8",
-                storageBucket: "mygamehub-d13d8.appspot.com",
-                messagingSenderId: "339025715622",
-                appId: "1:339025715622:web:f42547030db409a4b16f67"
-            };
-            const app = initializeApp(firebaseConfig);
-            const auth = getAuth(app);
-            function login() {
-                const email = document.getElementById("email").value;
-                const password = document.getElementById("password").value;
-                signInWithEmailAndPassword(auth, email, password)
-                    .then((userCredential) => {
-                        const user = userCredential.user;
-                        alert(user);
-                        window.location.href = "/";
-                    })
-                    .catch((error) => {
-                        const errorCode = error.code;
-                        const errorMessage = error.message;
-                        document.getElementById("error").innerText = error;
-                        alert(error);
-                    });
-            };
-            document.getElementById("login").addEventListener("click", login);
-        </script>
         <script src="https://js.sentry-cdn.com/de776303f0220e53d6ea617980dc6a62.min.js" crossorigin="anonymous"></script>
         <link rel="stylesheet" type="text/css" href="assets/styles.css">
         <title>MyGameHub - Login</title>

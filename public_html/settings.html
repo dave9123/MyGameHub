@@ -3,18 +3,6 @@
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <script type="module">
-            import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-            const firebaseConfig = {
-                apiKey: "AIzaSyBBT799FTeNCPGm3-HNzAUg2I1XWf4BAas",
-                authDomain: "mygamehub-d13d8.firebaseapp.com",
-                projectId: "mygamehub-d13d8",
-                storageBucket: "mygamehub-d13d8.appspot.com",
-                messagingSenderId: "339025715622",
-                appId: "1:339025715622:web:f42547030db409a4b16f67"
-            };
-            const app = initializeApp(firebaseConfig);
-        </script>
         <script src="https://js.sentry-cdn.com/de776303f0220e53d6ea617980dc6a62.min.js" crossorigin="anonymous"></script>
         <link rel="stylesheet" type="text/css" href="assets/styles.css">
         <title>MyGameHub - Settings</title>
@@ -32,7 +20,7 @@
             <container>
                 <h3>Settings</h3>
                 <form class="settings" id="settings" onsubmit="return update(event);">
-                    <p>Use Flashpoint Zip <select id="flashpointZip" name="flashpointZip">
+                    <p>Use Flashpoint zip? <select id="flashpointZip" name="flashpointZip">
                         <option value="true">Yes</option>
                         <option value="false">No</option>
                     </select></p>
