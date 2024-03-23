@@ -10,6 +10,28 @@ const authentication = require('./handler/authentication');
 const database = require('./handler/database');
 const port = process.env.PORT || 3000;
 
+if (process.env.SESSION_SECRET === undefined) {
+  throw new Error("SESSION_SECRET environment variable is required");
+} else if (process.env.SECURE === undefined) {
+  throw new Error("SECURE environment variable is required");
+} else if (process.env.DISCORD_CLIENT_ID === undefined) {
+  throw new Error("DISCORD_CLIENT_ID environment variable is required");
+} else if (process.env.DISCORD_CLIENT_SECRET === undefined) {
+  throw new Error("DISCORD_CLIENT_SECRET environment variable is required");
+} else if (process.env.BASE_PATH === undefined) {
+  throw new Error("BASE_PATH environment variable is required");
+} else if (process.env.DB_HOST === undefined) {
+  throw new Error("DB_HOST environment variable is required");
+} else if (process.env.DB_USER === undefined) {
+  throw new Error("DB_USER environment variable is required");
+} else if (process.env.DB_PASS === undefined) {
+  throw new Error("DB_PASS environment variable is required");
+} else if (process.env.DB_NAME === undefined) {
+  throw new Error("DB_NAME environment variable is required");
+} else {
+  console.log("Environment variables are ok");
+}
+
 if (process.env.SENTRY_DSN !== undefined) {
   Sentry.init({
     dsn: process.env.SENTRY_DSN,
@@ -23,7 +45,20 @@ if (process.env.SENTRY_DSN !== undefined) {
 }
 app.use(Sentry.Handlers.requestHandler());
 app.use(Sentry.Handlers.tracingHandler());
-app.use(cookieParser());
+app.use(cookieParser(process.env.SESSION_SECRET));
+app.use('/:page', (req, res, next) => {
+  console.log(req.cookies);
+  console.log(req.signedCookies);
+  next();
+  if (req.signedCookies.token) {
+    req.token = req.signedCookies.token;
+    
+    next();
+  } else {
+    //res.status(401).send("Unauthorized");
+    next();
+  }
+});
 
 async function fetchGame(provider, id, url) {
   console.log(`Fetching game file from ${provider} with id ${id}`);
@@ -122,6 +157,11 @@ app.get("/auth/discord/callback", async (req, res) => {
     const userJson = await userResponse.json();
     console.log(userJson);
     token = authentication.authenticateUser(userJson);
+    if (process.env.SECURE === "true" && process.env.SESSION_SECRET !== undefined) {
+      res.cookie("token", token, { httpOnly: false, secure: true, maxAge: 1000 * 60 * 60 * 24 * 30, signed: true, secret: process.env.SESSION_SECRET});
+    } else if (process.env.SECURE === "false") {
+      res.cookie("token", token, { httpOnly: true, secure: false, maxAge: 1000 * 60 * 60 * 24 * 30, signed: true, secret: process.env.SESSION_SECRET});
+    }
     res.send(`
       <div style="margin: 300px auto; max-width: 400px; display: flex; flex-direction: column; align-items: center; font-family: sans-serif;">
         <h3>Welcome, ${userJson.global_name}</h3>
@@ -238,7 +278,7 @@ app.get('/api/getgame', async (req, res) => {
   };
 });
 
-app.use('/proxy', async (req, res) => {
+app.get('/proxy', async (req, res) => {
   const url = req.query.url;
   if (url === undefined) {
     return res.status(400).json({ error: "URL is required" });

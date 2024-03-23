@@ -55,7 +55,7 @@
                             throw new Error('Zip path not found in localStorage.');
                             alert('An error occurred.');
                         }
-                        const zip = await JSZip.loadAsync(await fetch(`proxy/?url=${zipPath}`).then(r => r.blob()));
+                        const zip = await JSZip.loadAsync(await fetch(`proxy?url=${zipPath}`).then(r => r.blob()));
                         console.log(Object.keys(zip.files));
                         const gameFileData = await zip.file(`content/${new URL(gamePath).hostname}${new URL(gamePath).pathname}`);
                         console.log(`Searching for: content/${new URL(gamePath).hostname}${new URL(gamePath).pathname}`);
