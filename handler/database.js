@@ -12,7 +12,7 @@ async function dbInit() {
         console.log("Checking if the database is accessible...")
         await pool.query(`CREATE TABLE IF NOT EXISTS authentication (
                 id INT AUTO_INCREMENT PRIMARY KEY,
-                userid INT NOT NULL,
+                userid BIGINT NOT NULL,
                 username VARCHAR(255) NOT NULL,
                 globalname VARCHAR(255) NOT NULL,
                 avatar VARCHAR(255) NOT NULL
@@ -20,7 +20,7 @@ async function dbInit() {
         `);
         await pool.query(`CREATE TABLE IF NOT EXISTS gameactivity (
                 id INT AUTO_INCREMENT PRIMARY KEY,
-                userid INT NOT NULL,
+                userid BIGINT NOT NULL,
                 gamename VARCHAR(255) NOT NULL,
                 provider VARCHAR(255) NOT NULL,
                 gameid VARCHAR(255) NOT NULL,
