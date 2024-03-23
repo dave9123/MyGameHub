@@ -8,7 +8,12 @@ const cheerio = require("cheerio");
 const cookieParser = require("cookie-parser");
 const authentication = require('./handler/authentication');
 const database = require('./handler/database');
+const gameactivity = require('./handler/gameactivity');
 const port = process.env.PORT || 3000;
+
+//if (process.env.PRODUCTION === "false") {
+//  require("dotenv").config();
+//};
 
 if (process.env.SESSION_SECRET === undefined) {
   throw new Error("SESSION_SECRET environment variable is required");
