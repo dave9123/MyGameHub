@@ -178,24 +178,20 @@ app.get("/auth/discord/callback", async (req, res) => {
   };
 });
 
-app.get("/flash", (req, res) => {
-  res.sendFile(path.join(__dirname, "public_html", "flash.html"));
+app.get('/login', (req, res) => {
+  res.redirect('/auth/discord');
 });
 
-app.get("/documentation", (req, res) => {
-  res.sendFile(path.join(__dirname, "public_html", "documentation.html"));
-});
-
-//app.get("/login", (req, res) => {
-//  res.sendFile(path.join(__dirname, "public_html", "login.html"));
-//});
-
-app.get("/developers", (req, res) => {
-  res.sendFile(path.join(__dirname, "public_html", "developers.html"));
-});
-
-app.get("/settings", (req, res) => {
-  res.sendFile(path.join(__dirname, "public_html", "settings.html"));
+app.get('/:page', (req, res, next) => {
+  const page = req.params.page;
+  const pagePath = path.join(__dirname, 'public_html', `${page}.html`);
+  fs.access(pagePath, fs.constants.F_OK, (err) => {
+      if (err) {
+          next();
+      } else {
+          res.sendFile(pagePath);
+      }
+  });
 });
 
 app.get("/api/search", async (req, res) => {
