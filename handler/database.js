@@ -23,7 +23,8 @@ async function dbInit() {
                 userid INT NOT NULL,
                 gamename VARCHAR(255) NOT NULL,
                 provider VARCHAR(255) NOT NULL,
-                gameid VARCHAR(255) NOT NULL
+                gameid VARCHAR(255) NOT NULL,
+                timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
             )
         `);
         console.log("Database seems to be accessible.");

@@ -51,19 +51,19 @@ if (process.env.SENTRY_DSN !== undefined) {
 app.use(Sentry.Handlers.requestHandler());
 app.use(Sentry.Handlers.tracingHandler());
 app.use(cookieParser(process.env.SESSION_SECRET));
-app.use('/:page', (req, res, next) => {
-  console.log(req.cookies);
-  console.log(req.signedCookies);
-  next();
-  if (req.signedCookies.token) {
-    req.token = req.signedCookies.token;
-    
-    next();
-  } else {
-    //res.status(401).send("Unauthorized");
-    next();
-  }
-});
+//app.use('/:page', (req, res, next) => {
+//  const page = req.params.page;
+//  console.log("Page:", page);
+//  console.log("Cookies: ", req.cookies);
+//  console.log("Signed cookies: ", req.signedCookies);
+//  if (req.signedCookies.token) {
+//    req.token = req.signedCookies.token;
+//    next();
+//  } else {
+//    //res.status(401).send("Unauthorized");
+//    next();
+//  }
+//});
 
 async function fetchGame(provider, id, url) {
   console.log(`Fetching game file from ${provider} with id ${id}`);
