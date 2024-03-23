@@ -10,7 +10,6 @@ const authentication = require('./handler/authentication');
 const database = require('./handler/database');
 const port = process.env.PORT || 3000;
 
-database.dbInit();
 if (process.env.SENTRY_DSN !== undefined) {
   Sentry.init({
     dsn: process.env.SENTRY_DSN,
@@ -271,4 +270,5 @@ app.use(Sentry.Handlers.errorHandler());
 
 app.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`);
+  database.dbInit();
 });

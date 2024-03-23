@@ -1,18 +1,16 @@
 const mysql = require('mysql2/promise');
-require('dotenv').config();
 
 const pool = mysql.createPool({
     host: process.env.DB_HOST,
     user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
+    password: process.env.DB_PASS,
     database: process.env.DB_NAME
 });
 
 async function dbInit() {
     try {
         console.log("Checking if the database is accessible...")
-        await pool.query(`
-            CREATE TABLE IF NOT EXISTS authentication (
+        await pool.query(`CREATE TABLE IF NOT EXISTS authentication (
                 id INT AUTO_INCREMENT PRIMARY KEY,
                 userid INT NOT NULL,
                 username VARCHAR(255) NOT NULL,
@@ -20,8 +18,9 @@ async function dbInit() {
                 avatar VARCHAR(255) NOT NULL
             )
         `);
+        console.log("Database seems to be accessible.");
     } catch(error) {
-        console.log(`Database seems to be unaccessible`, error);
+        console.log(`Database seems to be unaccessible,`, error);
     }
 }
 
