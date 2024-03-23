@@ -168,7 +168,7 @@ app.get("/auth/discord/callback", async (req, res) => {
       res.cookie("token", token, { httpOnly: true, secure: false, maxAge: 1000 * 60 * 60 * 24 * 30, signed: true, secret: process.env.SESSION_SECRET});
     }
     res.send(`
-      <div style="margin: 300px auto; max-width: 400px; display: flex; flex-direction: column; align-items: center; font-family: sans-serif;">
+      <div style="margin: 300px auto; max-width: 400px; display: flex; flex-direction: column; align-items: center;">
         <h3>Welcome, ${userJson.global_name}</h3>
         <script>
           window.location.replace('/');
