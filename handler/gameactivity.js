@@ -18,7 +18,7 @@ async function fetchGameActivity(token) {
         console.log(`Fetched game activity for ${userid}:`, games);
         return games;
     } catch (error) {
-        throw new Error('Error fetching game activity: ' + error);
+        throw new Error('Error fetching game activity: ', error);
     }
 }
 

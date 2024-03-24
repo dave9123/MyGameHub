@@ -11,4 +11,5 @@ Accepts: GET request, `provider` and `id` request query
 - Flashpoint
 - Armor Games
 # Credits
-Thanks Michael for making the logo, <s><i>sorry for backpain</i></s>
+Thanks Michael for making the logo<s><i>, sorry for backpain</i></s><br/>
+Thanks G9 Aerospace for styling game result image

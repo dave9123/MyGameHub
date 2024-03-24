@@ -7,24 +7,23 @@
         <link rel="stylesheet" type="text/css" href="assets/styles.css">
         <title>MyGameHub</title>
         <script src="assets/script.js"></script>
-        <script>
-            document.addEventListener('click', function(event) {
-                var profileOptions = document.getElementById('profileOptions');
-                var profile = document.getElementById("userprofile");
-                if (profile.contains(event.target)) {
-                    if (profileOptions.style.display === "none") {
-                        console.log("block")
-                        profileOptions.style.display = "block";
-                    } else {
-                        console.log("none")
-                        profileOptions.style.display = "none";
+        <% if (avatar !== undefined) { %>
+            <script>
+                document.addEventListener('click', function(event) {
+                    var profileOptions = document.getElementById('profileOptions');
+                    var profile = document.getElementById("userprofile");
+                    if (profile.contains(event.target)) {
+                        if (profileOptions.style.display === "none") {
+                            profileOptions.style.display = "block";
+                        } else {
+                            profileOptions.style.display = "none";
+                        }
+                    } else if (profileOptions.style.display === 'block' && !profileOptions.contains(event.target)) {
+                        profileOptions.style.display = 'none';
                     }
-                } else if (profileOptions.style.display === 'block' && !profileOptions.contains(event.target)) {
-                    console.log("none")
-                    profileOptions.style.display = 'none';
-                }
-            });
-        </script>
+                });
+            </script>
+        <% } %>
     </head>
     <body>
         <div class="navbar">

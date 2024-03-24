@@ -16,9 +16,7 @@ const port = process.env.PORT || 3000;
 //  require("dotenv").config();
 //};
 
-if (process.env.SECURE === undefined) {
-  throw new Error("SECURE environment variable is required");
-} else if (process.env.DISCORD_CLIENT_ID === undefined) {
+if (process.env.DISCORD_CLIENT_ID === undefined) {
   throw new Error("DISCORD_CLIENT_ID environment variable is required");
 } else if (process.env.DISCORD_CLIENT_SECRET === undefined) {
   throw new Error("DISCORD_CLIENT_SECRET environment variable is required");
@@ -56,19 +54,6 @@ app.use(cookieSession({
 app.use(cookieParser(process.env.SESSION_SECRET));
 app.use(Sentry.Handlers.requestHandler());
 app.use(Sentry.Handlers.tracingHandler());
-//app.use('/:page', (req, res, next) => {
-//  const page = req.params.page;
-//  console.log("Page:", page);
-//  console.log("Cookies: ", req.cookies);
-//  console.log("Signed cookies: ", req.signedCookies);
-//  if (req.signedCookies.token) {
-//    req.token = req.signedCookies.token;
-//    next();
-//  } else {
-//    //res.status(401).send("Unauthorized");
-//    next();
-//  }
-//});
 
 async function fetchGame(provider, id, url) {
   console.log(`Fetching game file from ${provider} with id ${id}`);
@@ -93,43 +78,6 @@ async function fetchGame(provider, id, url) {
     throw new Error("Invalid provider");
   }
 }
-
-//app.get("/", (req, res) => {
-//  const refreshToken = req.session.refreshToken;
-//  if (refreshToken === undefined) {
-//    res.sendFile(path.join(__dirname, "public_html", "index.html"));
-//  } else {
-//    console.log(refreshToken);
-//    res.send(
-//      'Hello, logged in user<script>top.location.href="index.html";</script>'
-//    );
-//  }
-//});
-
-//app.get("/api/user", async (req, res) => {
-//  const accessToken = req.session.accessToken;
-//  const refreshToken = req.session.refreshToken;
-//  const accessTokenExpiresAt = req.session.accessTokenExpiresAt;
-//
-//  if (!accessToken || !refreshToken || Date.now() > accessTokenExpiresAt) {
-//    const token = await fetch("https://discord.com/api/oauth2/token", {
-//      method: "POST",
-//      headers: {
-//        "Content-Type": "application/x-www-form-urlencoded",
-//      },
-//      body: new URLSearchParams({
-//        client_id: process.env.DISCORD_CLIENT_ID,
-//        client_secret: process.env.DISCORD_CLIENT_SECRET,
-//        grant_type: "refresh_token",
-//        refresh_token: refreshToken,
-//        scope: "identify",
-//      }),
-//    });
-//    console.log(token);
-//    const tokenJson = await token.json();
-//    console.log(tokenJson);
-//  }
-//});
 
 app.get("/auth/discord", (req, res) => {
   res.redirect(`https://discord.com/api/oauth2/authorize?client_id=${process.env.DISCORD_CLIENT_ID}&redirect_uri=${process.env.BASE_PATH}/auth/discord/callback&response_type=code&scope=identify`);
@@ -187,15 +135,27 @@ app.get('/login', (req, res) => {
   res.redirect('/auth/discord');
 });
 
-app.get('/:page', (req, res, next) => {
-  const page = req.params.page;
-  const pagePath = path.join(__dirname, 'views', `${page}.ejs`);
-  fs.access(pagePath, fs.constants.F_OK, (err) => {
+app.get('/', async (req, res) => {
+  try {
+    const userinfo = await authentication.quickVerifyUser(req.cookies.token);
+    res.render(path.join(__dirname, 'views', 'index.ejs'), { username: userinfo.username, avatar: userinfo.avatar });
+  } catch {
+    res.render(path.join(__dirname, 'views', 'index.ejs'), { username: undefined, avatar: undefined });
+  }  
+})
+
+app.get('/:page', async (req, res, next) => {
+  const pagePath = path.join(__dirname, 'views', `${req.params.page}.ejs`)
+  fs.access(pagePath, fs.constants.F_OK, async (err) => {
     if (err) {
       next();
     } else {
-      const userinfo = authentication.quickVerifyUser(req.signedCookies.token)
-      res.render(pagePath, { username: userinfo.username, avatar: userinfo.avatar });
+      try {
+        const userinfo = await authentication.quickVerifyUser(req.cookies.token)
+        res.render(pagePath, { username: userinfo.username, avatar: userinfo.avatar });
+      } catch {
+        res.render(path.join(__dirname, 'views', `${pagePath}.ejs`), { username: undefined, avatar: undefined });
+      }
     }
   });
 });
@@ -255,15 +215,13 @@ app.get("/api/search", async (req, res) => {
 
 app.get("/api/userprofile", async (req, res) => {
   const token = req.cookies.token;
-  // unsigned
-  //const token = req.cookies.token;
   console.log("Recieved signed cookie:", req.signedCookies, " and unsigned cookie:", req.cookies);
   if (token === undefined) {
     return res.status(401).send("Unauthorized");
   } else {
     try {
       user = await authentication.quickVerifyUser(token);
-      res.json({ avatar: await user.avatar });
+      res.json({ userid: user.id, username: user.username, avatar: user.avatar });
     } catch (error) {
       console.error(error);
       res.status(500).json({ error: "Internal server error" });
