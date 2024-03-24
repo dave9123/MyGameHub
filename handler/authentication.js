@@ -17,7 +17,7 @@ async function authenticateUser(json) {
             console.log("User already exists, updating information...")
             await database.poolQuery('UPDATE authentication SET username = ?, globalname = ?, avatar = ? WHERE userid = ?', [json.username, json.global_name, `https://cdn.discordapp.com/avatars/${json.id}/${json.avatar}.png`, json.id]);
         }
-        const token = jwt.sign({ id: json.id }, process.env.JWT_SECRET, { expiresIn: '30d' }); // Expires in 30 days
+        const token = jwt.sign({ id: json.id, username: json.username, avatar: `https://cdn.discordapp.com/avatars/${json.id}/${json.avatar}.png` }, process.env.JWT_SECRET, { expiresIn: '30d' }); // Expires in 30 days
         console.log('User authenticated:', json.username, 'with token:', token)
         return token;
     }
@@ -26,13 +26,23 @@ async function authenticateUser(json) {
 async function verifyUser(token) {
     try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        console.log('User verified:', decoded);
+        console.log(decoded);
         const user = await database.poolQuery('SELECT * FROM authentication WHERE userid = ?', [decoded.id]);
         console.log(user);
         return { userid: decoded.id, username: user[0].username, globalname: user[0].globalname, avatar: user[0].avatar};
     } catch (error) {
-        throw new Error('Invalid token recieved or database might be unaccessible', error);
+        throw new Error('Invalid token recieved or database might be inaccessible', error);
     }
 };
 
-module.exports = { authenticateUser, verifyUser }
+async function quickVerifyUser(token) {
+    try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        console.log(decoded);
+        return { userid: decoded.id, username: decoded.username, avatar: decoded.avatar };
+    } catch (error) {
+        throw new Error('Invalid token recieved or database might be inaccessible', error);
+    }
+}
+
+module.exports = { authenticateUser, verifyUser, quickVerifyUser };

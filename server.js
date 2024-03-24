@@ -5,7 +5,8 @@ const Sentry = require("@sentry/node");
 const path = require("path");
 const fs = require("fs-extra");
 const cheerio = require("cheerio");
-const cookieParser = require("cookie-parser");
+const cookieParser = require('cookie-parser');
+const cookieSession = require('cookie-session');
 const authentication = require('./handler/authentication');
 const database = require('./handler/database');
 const gameactivity = require('./handler/gameactivity');
@@ -15,9 +16,7 @@ const port = process.env.PORT || 3000;
 //  require("dotenv").config();
 //};
 
-if (process.env.SESSION_SECRET === undefined) {
-  throw new Error("SESSION_SECRET environment variable is required");
-} else if (process.env.SECURE === undefined) {
+if (process.env.SECURE === undefined) {
   throw new Error("SECURE environment variable is required");
 } else if (process.env.DISCORD_CLIENT_ID === undefined) {
   throw new Error("DISCORD_CLIENT_ID environment variable is required");
@@ -48,9 +47,15 @@ if (process.env.SENTRY_DSN !== undefined) {
     profilesSampleRate: 1.0,
   });
 }
+app.set('view engine', 'ejs');
+app.use(cookieSession({
+  name: 'session',
+  keys: process.env.SESSION_SECRET,
+  maxAge: 30 * 24 * 60 * 60 * 1000 // 30 days
+}));
+app.use(cookieParser(process.env.SESSION_SECRET));
 app.use(Sentry.Handlers.requestHandler());
 app.use(Sentry.Handlers.tracingHandler());
-app.use(cookieParser(process.env.SESSION_SECRET));
 //app.use('/:page', (req, res, next) => {
 //  const page = req.params.page;
 //  console.log("Page:", page);
@@ -162,12 +167,7 @@ app.get("/auth/discord/callback", async (req, res) => {
     const userJson = await userResponse.json();
     console.log(userJson);
     try {
-      token = authentication.authenticateUser(userJson);
-      if (process.env.SECURE === "true" && process.env.SESSION_SECRET !== undefined) {
-        res.cookie("token", token, { httpOnly: false, secure: true, maxAge: 1000 * 60 * 60 * 24 * 30, signed: true, secret: process.env.SESSION_SECRET});
-      } else if (process.env.SECURE === "false") {
-        res.cookie("token", token, { httpOnly: true, secure: false, maxAge: 1000 * 60 * 60 * 24 * 30, signed: true, secret: process.env.SESSION_SECRET});
-      }
+      res.cookie("token", await authentication.authenticateUser(userJson), { maxAge: 1000 * 60 * 60 * 24 * 30, signed: true, sameSite: "strict"});
       res.send(`
         <div style="margin: 300px auto; max-width: 400px; display: flex; flex-direction: column; align-items: center;">
           <h3>Welcome, ${userJson.global_name}</h3>
@@ -189,13 +189,14 @@ app.get('/login', (req, res) => {
 
 app.get('/:page', (req, res, next) => {
   const page = req.params.page;
-  const pagePath = path.join(__dirname, 'public_html', `${page}.html`);
+  const pagePath = path.join(__dirname, 'views', `${page}.ejs`);
   fs.access(pagePath, fs.constants.F_OK, (err) => {
-      if (err) {
-          next();
-      } else {
-          res.sendFile(pagePath);
-      }
+    if (err) {
+      next();
+    } else {
+      const userinfo = authentication.quickVerifyUser(req.signedCookies.token)
+      res.render(pagePath, { username: userinfo.username, avatar: userinfo.avatar });
+    }
   });
 });
 
@@ -253,16 +254,16 @@ app.get("/api/search", async (req, res) => {
 });
 
 app.get("/api/userprofile", async (req, res) => {
-  const token = req.signedCookies.token;
+  const token = req.cookies.token;
   // unsigned
   //const token = req.cookies.token;
+  console.log("Recieved signed cookie:", req.signedCookies, " and unsigned cookie:", req.cookies);
   if (token === undefined) {
     return res.status(401).send("Unauthorized");
   } else {
     try {
-      user = await authentication.verifyUser(token);
-      avatar = await user.avatar;
-      res.json({ avatar: avatar });
+      user = await authentication.quickVerifyUser(token);
+      res.json({ avatar: await user.avatar });
     } catch (error) {
       console.error(error);
       res.status(500).json({ error: "Internal server error" });
@@ -352,7 +353,7 @@ app.get('/proxy', async (req, res) => {
   }
 });
 
-app.use(express.static(path.join(__dirname, "public_html")));
+app.use(express.static(path.join(__dirname, "public")));
 
 app.use(Sentry.Handlers.errorHandler());
 

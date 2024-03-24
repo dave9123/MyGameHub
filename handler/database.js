@@ -31,7 +31,7 @@ async function dbInit() {
         console.log("Database seems to be accessible.");
         isDBOnline = true;
     } catch(error) {
-        console.log(`Database seems to be unaccessible,`, error);
+        console.log(`Database seems to be inaccessible,`, error);
         isDBOnline = false;
     }
 }
