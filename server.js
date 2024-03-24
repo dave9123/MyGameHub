@@ -7,9 +7,12 @@ const fs = require("fs-extra");
 const cheerio = require("cheerio");
 const cookieParser = require('cookie-parser');
 const cookieSession = require('cookie-session');
-const authentication = require('./handler/authentication');
-const database = require('./handler/database');
-const gameactivity = require('./handler/gameactivity');
+const crypto = require('crypto');
+const authentication = require('./handlers/authentication');
+const database = require('./handlers/database');
+const gameactivity = require('./handlers/gameactivity');
+const flashpoint = require('./providers/flashpoint');
+const armorgames = require('./providers/armorgames');
 const port = process.env.PORT || 3000;
 
 //if (process.env.PRODUCTION === "false") {
@@ -36,6 +39,10 @@ if (process.env.DISCORD_CLIENT_ID === undefined) {
   console.log("Environment variables are ok");
 }
 
+function generateSessionId() {
+  return crypto.randomBytes(32).toString('base64');
+}
+
 if (process.env.SENTRY_DSN !== undefined) {
   Sentry.init({
     dsn: process.env.SENTRY_DSN,
@@ -51,7 +58,11 @@ app.set('view engine', 'ejs');
 app.use(cookieSession({
   name: 'session',
   keys: process.env.SESSION_SECRET,
-  maxAge: 30 * 24 * 60 * 60 * 1000 // 30 days
+  maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+  cookie: {
+    sameSite: 'strict',
+    signed: true
+  }
 }));
 app.use(cookieParser(process.env.SESSION_SECRET));
 app.use(Sentry.Handlers.requestHandler());
@@ -164,7 +175,9 @@ app.get('/:page', async (req, res, next) => {
 
 app.get("/api/search", async (req, res) => {
   const searchTerm = req.query.q;
-  //const provider = req.query.provider;
+  const provider = req.query.provider;
+  //const filter = req.query.filter;
+  //if (provider === undefined) {
   const flashpointAPI = `https://db-api.unstable.life/search?smartSearch=${searchTerm}&filter=true&fields=id,title,developer,publisher,platform,library,tags,originalDescription,dateAdded,dateModified`;
   const armorgamesAPI = "https://armorgames.com/service/game-search";
   if (!searchTerm) {
@@ -188,7 +201,6 @@ app.get("/api/search", async (req, res) => {
         publisher: result.publisher,
         description: result.originalDescription,
         cover: `https://infinity.unstable.life/images/Logos/${result.id.substring(0,2)}/${result.id.substring(2,4)}/${result.id}.png?type=jpg`,
-        //gameFile: `https://download.unstable.life/gib-roms/Games/${result.id}-${result.utcMilli}.zip`,
         getInfo: `https://ooooooooo.ooo/get?id=${result.id}`, //{"uuid":"06695a49-dd02-4902-ae18-aa13d8b50c20","title":"The Sigworminator 6000","launchCommand":"http://uploads.ungrounded.net/231000/231585_Create_a_worm.swf?123","utcMilli":"1616732063351","extreme":false,"votesWorking":0,"votesBroken":0,"isZipped":true}
         provider: "Flashpoint",
       }));
@@ -206,13 +218,12 @@ app.get("/api/search", async (req, res) => {
       title: game.label,
       cover: game.thumbnail,
       gameUrl: `https://armorgames.com${game.url}`,
-      //gameFile: await fetchGame(`https://armorgames.com${game.url}`, "armorgames", game.game_id),
-      //getInfo: `${process.env.BASE_PATH}/api/getgame?provider=armorgames&id=${game.game_id}`,
       provider: "Armor Games",
     }));
     console.log("Finished fetching from Armor Games API");
-    res.json({ ...flashpointSearchResult });
+    res.json({ ...flashpointSearchResult, ...armorgamesSearchResult });
   }
+//}
 });
 
 app.get("/api/userprofile", async (req, res) => {
@@ -234,20 +245,24 @@ app.get("/api/userprofile", async (req, res) => {
 app.get('/api/getgame', async (req, res) => {
   const provider = req.query.provider;
   const id = req.query.id;
-  const token = req.signedCookies.token;
+  const token = req.cookies.token;
   if (!provider || !id) {
     return res.status(400).json({ error: "Provider and ID are required" });
   } else if (provider === "armorgames") {
     const gameFile = await fetchGame("armorgames", id, `https://armorgames.com/play/${id}`);
     if (token !== undefined) {
       try {
-        fs.readFile('cache/armorgames.json', 'utf8', async (err, data) => {
+        fs.readFile('debug/armorgames.json', 'utf8', async (err, data) => {
           if (err !== undefined) {
             console.error(err);
           } else {
             const gameResult = JSON.parse(data).filter(game => Number(game.game_id) === Number(req.query.game_id))
             if (gameResult.length > 0) {
-              await gameactivity.storeGameActivity(token, gameResult.label, provider, id);
+              try {
+                await gameactivity.storeGameActivity(token, gameResult.label, provider, id);
+              } catch (error) {
+                console.warn("An error occured while storing gaming activity:", error);
+              }
             } else {
               console.log("Game not found in cache");
             }
@@ -319,7 +334,6 @@ app.get("/logout", (req, res) => {
 })
 
 app.use(express.static(path.join(__dirname, "public")));
-
 app.use(Sentry.Handlers.errorHandler());
 
 app.listen(port, () => {

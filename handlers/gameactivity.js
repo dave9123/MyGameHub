@@ -1,13 +1,15 @@
 const database = require('./database');
 const { verifyUser } = require('./authentication');
 
-async function storeGameActivity(token, game, provider, gameid) {
+async function storeGameActivity(token, gamename, provider, gameid) {
     try {
-        userid = await verifyUser(token).id;
-        await database.poolQuery('INSERT INTO gameactivity (userid, gamename, provider, gameid) VALUES (?, ?, ?, ?)', [userid, game, provider, gameid]);
-        console.log(`Logged game activity for ${userid} playing ${game} from ${provider} with ID ${gameid}`);
+        user = await verifyUser(token);
+        userid = await user.userid;
+        console.log("Storing game activity for", userid, gamename, provider, gameid)
+        await database.poolQuery('INSERT INTO gameactivity (userid, gamename, provider, gameid) VALUES (?, ?, ?, ?)', [userid, gamename, provider, gameid]);
+        console.log(`Logged game activity for ${userid} playing ${gamename} from ${provider} with ID ${gameid}`);
     } catch (error) {
-        throw new Error('Error logging game activity: ' + error);
+        throw new Error('Error logging game activity:', error);
     }
 };
 

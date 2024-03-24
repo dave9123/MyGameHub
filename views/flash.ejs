@@ -11,10 +11,6 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js" integrity="sha512-XMVd28F1oH/O71fzwBnV7HucLxVwtxf26XV8P4wPk26EDxuGZ91N8bsOttmnomcCD3CS5ZMRL50H0GgOHvegtg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <script src="https://js.sentry-cdn.com/de776303f0220e53d6ea617980dc6a62.min.js" crossorigin="anonymous"></script>
     <style>
-        body {
-            margin: 0;
-            padding: 0;
-        }
         #player {
             display: flex;
             border: none;
@@ -66,7 +62,7 @@
             <a href="logout">Log Out</a>
         </div>
         <% } %>
-    </section>
+    </div>
     <div id="player"></div>
     <script>
         let gamePath = localStorage.getItem('gamePath');
