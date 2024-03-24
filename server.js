@@ -234,7 +234,11 @@ app.get("/api/userprofile", async (req, res) => {
   } else {
     try {
       user = await authentication.quickVerifyUser(token);
-      res.json({ userid: user.id, username: user.username, avatar: user.avatar });
+      res.json({
+        userid: user.userid,
+        username: user.username,
+        avatar: user.avatar
+      });
     } catch (error) {
       console.error(error);
       res.status(500).json({ error: "Internal server error" });
