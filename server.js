@@ -17,19 +17,21 @@ const port = process.env.PORT || 3000;
 //};
 
 if (process.env.DISCORD_CLIENT_ID === undefined) {
-  throw new Error("DISCORD_CLIENT_ID environment variable is required");
+  throw new Error("DISCORD_CLIENT_ID environment variable is required!");
 } else if (process.env.DISCORD_CLIENT_SECRET === undefined) {
-  throw new Error("DISCORD_CLIENT_SECRET environment variable is required");
+  throw new Error("DISCORD_CLIENT_SECRET environment variable is required!");
 } else if (process.env.BASE_PATH === undefined) {
-  throw new Error("BASE_PATH environment variable is required");
+  throw new Error("BASE_PATH environment variable is required!");
 } else if (process.env.DB_HOST === undefined) {
-  throw new Error("DB_HOST environment variable is required");
+  throw new Error("DB_HOST environment variable is required!");
 } else if (process.env.DB_USER === undefined) {
-  throw new Error("DB_USER environment variable is required");
+  throw new Error("DB_USER environment variable is required!");
 } else if (process.env.DB_PASS === undefined) {
-  throw new Error("DB_PASS environment variable is required");
+  throw new Error("DB_PASS environment variable is required!");
 } else if (process.env.DB_NAME === undefined) {
-  throw new Error("DB_NAME environment variable is required");
+  throw new Error("DB_NAME environment variable is required!");
+} else if (process.env.EMAIL === undefined) {
+  console.log("EMAIL environment variable is required!")
 } else {
   console.log("Environment variables are ok");
 }
@@ -152,9 +154,9 @@ app.get('/:page', async (req, res, next) => {
     } else {
       try {
         const userinfo = await authentication.quickVerifyUser(req.cookies.token)
-        res.render(pagePath, { username: userinfo.username, avatar: userinfo.avatar });
+        res.render(pagePath, { username: userinfo.username, avatar: userinfo.avatar, email: process.env.EMAIL });
       } catch {
-        res.render(path.join(__dirname, 'views', `${pagePath}.ejs`), { username: undefined, avatar: undefined });
+        res.render(path.join(__dirname, 'views', `${pagePath}.ejs`), { username: undefined, avatar: undefined, email: process.env.EMAIL });
       }
     }
   });
