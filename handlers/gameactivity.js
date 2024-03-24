@@ -1,9 +1,9 @@
 const database = require('./database');
-const { verifyUser } = require('./authentication');
+const authentication = require('./authentication');
 
 async function storeGameActivity(token, gamename, provider, gameid) {
     try {
-        user = await verifyUser(token);
+        user = await authentication.verifyUser(token);
         userid = await user.userid;
         console.log("Storing game activity for", userid, gamename, provider, gameid)
         await database.poolQuery('INSERT INTO gameactivity (userid, gamename, provider, gameid) VALUES (?, ?, ?, ?)', [userid, gamename, provider, gameid]);
@@ -15,8 +15,9 @@ async function storeGameActivity(token, gamename, provider, gameid) {
 
 async function fetchGameActivity(token) {
     try {
-        userid = await verifyUser(token).id;
-        const games = await database.poolQuery('SELECT * FROM gameactivity WHERE userid = ?', [userid]);
+        userid = (await authentication.quickVerifyUser(token)).userid;
+        console.log("Fetching game activity for", userid)
+        const games = (await database.poolQuery('SELECT * FROM gameactivity WHERE userid = ?', [userid]))[0];
         console.log(`Fetched game activity for ${userid}:`, games);
         return games;
     } catch (error) {

@@ -11,13 +11,9 @@ const crypto = require('crypto');
 const authentication = require('./handlers/authentication');
 const database = require('./handlers/database');
 const gameactivity = require('./handlers/gameactivity');
-const flashpoint = require('./providers/flashpoint');
-const armorgames = require('./providers/armorgames');
+//const flashpoint = require('./providers/flashpoint');
+//const armorgames = require('./providers/armorgames');
 const port = process.env.PORT || 3000;
-
-//if (process.env.PRODUCTION === "false") {
-//  require("dotenv").config();
-//};
 
 if (process.env.DISCORD_CLIENT_ID === undefined) {
   throw new Error("DISCORD_CLIENT_ID environment variable is required!");
@@ -39,9 +35,9 @@ if (process.env.DISCORD_CLIENT_ID === undefined) {
   console.log("Environment variables are ok");
 }
 
-function generateSessionId() {
-  return crypto.randomBytes(32).toString('base64');
-}
+//function generateSessionId() {
+//  return crypto.randomBytes(32).toString('base64');
+//}
 
 if (process.env.SENTRY_DSN !== undefined) {
   Sentry.init({
@@ -304,6 +300,20 @@ app.get('/api/getgame', async (req, res) => {
   } else {
     res.status(400).json({ error: "Invalid provider" });
   };
+});
+
+app.get('/api/gameactivity', async (req, res) => {
+  const token = req.cookies.token;
+  if (token === undefined) {
+    return res.status(401).json({ error: "Unauthorized" });
+  } else {
+    try {
+      res.json(await gameactivity.fetchGameActivity(token));
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  }
 });
 
 app.get('/proxy', async (req, res) => {
