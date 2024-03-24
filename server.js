@@ -313,6 +313,11 @@ app.get('/proxy', async (req, res) => {
   }
 });
 
+app.get("/logout", (req, res) => {
+  res.clearCookie("token");
+  res.redirect("/");
+})
+
 app.use(express.static(path.join(__dirname, "public")));
 
 app.use(Sentry.Handlers.errorHandler());
