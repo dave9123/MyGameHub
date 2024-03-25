@@ -51,6 +51,9 @@
             <a href="tos">Terms of Service</a>
             <a href="pp">Privacy Policy</a>
             <a href="settings">Settings</a>
+            <% if (avatar == undefined) { %>
+            <a href="login">Login</a>
+            <% } %>
             <% if (avatar !== undefined) { %>
             <img id="userprofile" src="<%= avatar %>">
             <% } %>
@@ -64,6 +67,7 @@
         <% } %>
     </div>
     <div id="player"></div>
+    <p id="ziptext" style="display: none;">Is game not loading? Try enabling Flashpoint zip from <a href="settings">settings</a></p>
     <script>
         let gamePath = localStorage.getItem('gamePath');
         let gameZip = null;
@@ -98,6 +102,9 @@
                     }
                 })();
             } else {
+                if (localStorage.getItem('provider') === "flashpoint" && localStorage.getItem('useflashpointzip') === "false") {
+                    document.getElementById('ziptext').style.display = "block";
+                }
                 player.load(gamePath);
             };
         })();

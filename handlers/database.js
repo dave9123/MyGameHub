@@ -1,4 +1,5 @@
 const mysql = require('mysql2/promise');
+//const db = new (require("sqlite3").verbose()).Database('./database.db');
 
 const pool = mysql.createPool({
     host: process.env.DB_HOST,

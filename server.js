@@ -7,7 +7,7 @@ const fs = require("fs-extra");
 const cheerio = require("cheerio");
 const cookieParser = require('cookie-parser');
 const cookieSession = require('cookie-session');
-const crypto = require('crypto');
+//const crypto = require('crypto');
 const authentication = require('./handlers/authentication');
 const database = require('./handlers/database');
 const gameactivity = require('./handlers/gameactivity');
@@ -74,7 +74,7 @@ async function fetchGame(provider, id, url) {
     } else if (!fs.existsSync(`debug/${id}.json`)) {
       const response = await fetch(url);
       if (!response.ok) {
-        return res.status(400).json({ error: "Failed to fetch game file" });
+        throw new Error(`Failed to fetch game file from Armor Games ${response.status} ${response.statusText}`);
       } else {
         const html = await response.text();
         await fs.ensureDir("debug");
@@ -125,14 +125,15 @@ app.get("/auth/discord/callback", async (req, res) => {
     console.log(userJson);
     try {
       res.cookie("token", await authentication.authenticateUser(userJson), { maxAge: 1000 * 60 * 60 * 24 * 30, signed: true, sameSite: "strict"});
-      res.send(`
-        <div style="margin: 300px auto; max-width: 400px; display: flex; flex-direction: column; align-items: center;">
-          <h3>Welcome, ${userJson.global_name}</h3>
-          <script>
-            window.location.replace('/');
-          </script>
-        </div>
-      `);
+      res.redirect("/");
+      //res.send(`
+      //  <div style="margin: 300px auto; max-width: 400px; display: flex; flex-direction: column; align-items: center;">
+      //    <h3>Welcome, ${userJson.global_name}</h3>
+      //    <script>
+      //      window.location.replace('/');
+      //    </script>
+      //  </div>
+      //`);
     } catch (error) {
       console.error(error);
       res.status(500).send("Internal server error");
@@ -145,8 +146,10 @@ app.get('/login', (req, res) => {
 });
 
 app.get('/', async (req, res) => {
+  const token = req.signedCookies['token'];
   try {
-    const userinfo = await authentication.quickVerifyUser(req.cookies.token);
+    const userinfo = await authentication.quickVerifyUser(token);
+    console.log("Detected", userinfo);
     res.render(path.join(__dirname, 'views', 'index.ejs'), { username: userinfo.username, avatar: userinfo.avatar });
   } catch {
     res.render(path.join(__dirname, 'views', 'index.ejs'), { username: undefined, avatar: undefined });
@@ -155,15 +158,16 @@ app.get('/', async (req, res) => {
 
 app.get('/:page', async (req, res, next) => {
   const pagePath = path.join(__dirname, 'views', `${req.params.page}.ejs`)
+  const token = req.signedCookies['token'];
   fs.access(pagePath, fs.constants.F_OK, async (err) => {
     if (err) {
       next();
     } else {
       try {
-        const userinfo = await authentication.quickVerifyUser(req.cookies.token)
+        const userinfo = await authentication.quickVerifyUser(token);
         res.render(pagePath, { username: userinfo.username, avatar: userinfo.avatar, email: process.env.EMAIL });
       } catch {
-        res.render(path.join(__dirname, 'views', `${pagePath}.ejs`), { username: undefined, avatar: undefined, email: process.env.EMAIL });
+        res.render(pagePath, { username: undefined, avatar: undefined, email: process.env.EMAIL });
       }
     }
   });
@@ -174,7 +178,7 @@ app.get("/api/search", async (req, res) => {
   const provider = req.query.provider;
   //const filter = req.query.filter;
   //if (provider === undefined) {
-  const flashpointAPI = `https://db-api.unstable.life/search?smartSearch=${searchTerm}&filter=true&fields=id,title,developer,publisher,platform,library,tags,originalDescription,dateAdded,dateModified`;
+  const flashpointAPI = `https://db-api.unstable.life/search?smartSearch=${searchTerm}&fields=id,title,developer,publisher,platform,library,tags,originalDescription,dateAdded,dateModified`;//&filter=true
   const armorgamesAPI = "https://armorgames.com/service/game-search";
   if (!searchTerm) {
     return res.status(400).send("Search term is required");
@@ -223,7 +227,7 @@ app.get("/api/search", async (req, res) => {
 });
 
 app.get("/api/userprofile", async (req, res) => {
-  const token = req.cookies.token;
+  const token = req.signedCookies['token'];
   console.log("Recieved signed cookie:", req.signedCookies, " and unsigned cookie:", req.cookies);
   if (token === undefined) {
     return res.status(401).send("Unauthorized");
@@ -245,34 +249,36 @@ app.get("/api/userprofile", async (req, res) => {
 app.get('/api/getgame', async (req, res) => {
   const provider = req.query.provider;
   const id = req.query.id;
-  const token = req.cookies.token;
+  const token = req.signedCookies['token'];
+  gamefile = undefined;
   if (!provider || !id) {
     return res.status(400).json({ error: "Provider and ID are required" });
   } else if (provider === "armorgames") {
-    const gameFile = await fetchGame("armorgames", id, `https://armorgames.com/play/${id}`);
-    if (token !== undefined) {
-      try {
+    try {
+      gameFile = await fetchGame("armorgames", id, `https://armorgames.com/play/${id}`);
+      if (token !== undefined) {
         fs.readFile('debug/armorgames.json', 'utf8', async (err, data) => {
-          if (err !== undefined) {
-            console.error(err);
-          } else {
-            const gameResult = JSON.parse(data).filter(game => Number(game.game_id) === Number(req.query.game_id))
+          if (err !== null) {
+            console.warn("An error occured while reading the Armor Games cache:", err)
+          } else if (data !== undefined){
+            const gameResult = JSON.parse(data).filter(game => Number(game.game_id) === Number(req.query.id));
             if (gameResult.length > 0) {
               try {
-                await gameactivity.storeGameActivity(token, gameResult.label, provider, id);
+                await gameactivity.storeGameActivity(token, gameResult[0].label, provider, id);
               } catch (error) {
                 console.warn("An error occured while storing gaming activity:", error);
               }
             } else {
-              console.log("Game not found in cache");
+              console.warn("An error occured while storing game activity because the game wasn't found in the Armor Games cache")
             }
           }
         });
-      } catch (error) {
-        console.error(error);
       }
+      res.json({ gameFile: gameFile });
+    } catch (error) {
+      console.error(error);
+      return res.status(404).json({ error: "Game not found" });
     }
-    res.json({ gameFile: gameFile });
   } else if (provider === "flashpoint") {
     const gameinfo = await fetch(`https://ooooooooo.ooo/get?id=${id}`)
     if (gameinfo.ok) {
@@ -303,7 +309,7 @@ app.get('/api/getgame', async (req, res) => {
 });
 
 app.get('/api/gameactivity', async (req, res) => {
-  const token = req.cookies.token;
+  const token = req.signedCookies['token'];
   if (token === undefined) {
     return res.status(401).json({ error: "Unauthorized" });
   } else {

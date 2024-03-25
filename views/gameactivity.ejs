@@ -35,6 +35,9 @@
                 <a href="tos">Terms of Service</a>
                 <a href="pp">Privacy Policy</a>
                 <a href="settings">Settings</a>
+                <% if (avatar == undefined) { %>
+                <a href="login">Login</a>
+                <% } %>
                 <% if (avatar !== undefined) { %>
                 <img id="userprofile" src="<%= avatar %>">
                 <% } %>
@@ -48,12 +51,6 @@
             <% } %>
         </div>
         <div class="content-container">
-            <container>
-                <form class="search-bar" onsubmit="return searchGames(event);">
-                    <input type="text" name="search" placeholder="Search games...">
-                    <button type="submit">Search</button>
-                </form>
-            </container>
             <section class="searchresults" id="searchresults"></section>
         </div>
     </body>

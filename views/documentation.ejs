@@ -36,6 +36,9 @@
                 <a href="tos">Terms of Service</a>
                 <a href="pp">Privacy Policy</a>
                 <a href="settings">Settings</a>
+                <% if (avatar == undefined) { %>
+                <a href="login">Login</a>
+                <% } %>
                 <% if (avatar !== undefined) { %>
                 <img id="userprofile" src="<%= avatar %>">
                 <% } %>
