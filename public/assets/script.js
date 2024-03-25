@@ -37,7 +37,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <h3>${result.title}</h3>
                     <p>Provider: Armor Games</p>
                     <img loading="lazy" src="${result.cover}" alt="${result.title} Cover"><br/>
-                    <button><a onclick="playArmor('${result.id}', '${result.gameUrl}')" target="_blank">Play Game</a></button>
+                    <button><a onclick="playArmor('${result.id}')" target="_blank">Play Game</a></button>
                 `;
                 }
                 searchResultsSection.appendChild(gameElement);
@@ -47,38 +47,30 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 });
-async function playFlashpoint(id, gameName) {
-    //if (localStorage.getItem('userId') != null) {
-    //    fetch(`play?userId=${localStorage.getItem('userId')}&gameName=${gameName}`);
-    //};
+async function playFlashpoint(id) {
     const get = `api/getgame?id=${id}&provider=flashpoint`;
-    f = fetch(get)
-        .then(async response => {
-            if (response.status == 404) {
-                alert('Game not found. Please report this to the developer.');
-            } else {
-                response = await response.json();
-                localStorage.setItem('provider', 'flashpoint')
-                localStorage.setItem('gamePath', response.gameFile);
-                localStorage.setItem('zipPath', response.gameFile2);
-                window.location.href = 'flash';
-            }
-        });
+    fetch(get).then(async response => {
+        if (response.status == 404) {
+            alert('Game not found. Please report this to the developer.');
+        } else {
+            response = await response.json();
+            localStorage.setItem('provider', 'flashpoint')
+            localStorage.setItem('gamePath', response.gameFile);
+            localStorage.setItem('zipPath', response.gameFile2);
+            window.location.href = 'flash';
+        }
+    });
 };
-async function playArmor(id, url) {
-    //if (localStorage.getItem('userId') != null) {
-    //    fetch(`play?userId=${localStorage.getItem('userId')}&gameName=${gameName}`);
-    //};
-    const get = `api/getgame?id=${id}&url=${url}&provider=armorgames`;
-    f = await fetch(get)
-        .then(async response => {
-            if (response.status === 404) {
-                alert('Game not found. Please report this to the developer.');
-            } else if (response.status === 200) {
-                response = await response.json();
-                localStorage.setItem('provider', 'armorgames');
-                localStorage.setItem('gamePath', response.gameFile);
-                window.location.href = 'flash';
-            }
-        });
+async function playArmor(id) {
+    const get = `api/getgame?id=${id}&provider=armorgames`;
+    await fetch(get).then(async response => {
+        if (response.status === 404) {
+            alert('Game not found. Please report this to the developer.');
+        } else if (response.status === 200) {
+            response = await response.json();
+            localStorage.setItem('provider', 'armorgames');
+            localStorage.setItem('gamePath', response.gameFile);
+            window.location.href = 'flash';
+        }
+    });
 }

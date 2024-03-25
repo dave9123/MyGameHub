@@ -25,6 +25,27 @@
                 });
             </script>
         <% } %>
+        <script>
+            async function play(provider, id) {
+                const response = await fetch(`/api/getgame?provider=${provider}&id=${id}`);
+                if (!response.ok) {
+                    alert('Failed to fetch game');
+                    throw new Error('Failed to fetch game');
+                } else if (response.ok) {
+                    const data = await response.json();
+                    if (provider === "armorgames") {
+                        localStorage.setItem('provider', provider);
+                        localStorage.setItem('gamePath', data.gameFile);
+                        window.location.href = 'flash';
+                    } else if (provider === "flashpoint") {
+                        localStorage.setItem('provider', provider);
+                        localStorage.setItem('gamePath', data.gameFile);
+                        localStorage.setItem('zipPath', data.gameFile2);
+                        window.location.href = 'flash';
+                    }
+                }
+            }
+        </script>
     </head>
     <body>
         <div class="navbar">
@@ -51,7 +72,16 @@
             <% } %>
         </div>
         <div class="content-container">
-            <section class="searchresults" id="searchresults"></section>
+            <section class="searchresults" id="searchresults">
+                <% activities.forEach(function(activity) { %>
+                <div class="search-result">
+                    <h3><%= activity.gamename %></h3>
+                    <p>Provider: <%= activity.provider %></p>
+                    <p>Played on: <%= activity.timestamp %></p>
+                    <button><a onclick="play('<%= activity.provider %>','<%= activity.gameid %>')" target="_blank">Play Game</a></button>
+                </div>
+                <% }); %>
+            </section>
         </div>
     </body>
 </html>

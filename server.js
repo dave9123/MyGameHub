@@ -156,6 +156,22 @@ app.get('/', async (req, res) => {
   }  
 })
 
+app.get('/gameactivity', async (req, res) => {
+  const token = req.signedCookies['token'];
+  if (token === undefined) {
+    res.redirect('/');
+  } else {
+    try {
+      const userinfo = await authentication.quickVerifyUser(token);
+      const activities = await gameactivity.fetchGameActivity(token);
+      console.log("Detected", userinfo);
+      res.render(path.join(__dirname, 'views', 'gameactivity.ejs'), { username: userinfo.username, avatar: userinfo.avatar, activities: activities });
+    } catch {
+      res.redirect('/');
+    }
+  }
+});
+
 app.get('/:page', async (req, res, next) => {
   const pagePath = path.join(__dirname, 'views', `${req.params.page}.ejs`)
   const token = req.signedCookies['token'];
@@ -212,7 +228,6 @@ app.get("/api/search", async (req, res) => {
     var armorgamesSearchResult = await armorgamesResultJson;
     armorgamesSearchResult = armorgamesSearchResult.filter((game) => game.label && game.label.toLowerCase().includes(searchTerm.toLowerCase()));
     armorgamesSearchResult = armorgamesSearchResult.filter((game) => game.url.split("/")[1] === "play");
-    console.log(armorgamesSearchResult);
     armorgamesSearchResult = armorgamesSearchResult.map((game) => ({
       id: game.game_id,
       title: game.label,
@@ -291,15 +306,20 @@ app.get('/api/getgame', async (req, res) => {
           console.error(error);
         }
       }
-      res.json({
-        uuid: gameinfojson.id,
-        title: gameinfojson.title,
-        utcMilli: gameinfojson.utcMilli,
-        extreme: gameinfojson.extreme,
-        gameFile: gameinfojson.launchCommand,
-        gameLocationOnZip: decodeURIComponent('content/' + new URL(gameinfojson.launchCommand).hostname + new URL(gameinfojson.launchCommand).pathname),
-        gameFile2: `https://download.unstable.life/gib-roms/Games/${gameinfojson.uuid}-${gameinfojson.utcMilli}.zip`,//https://download.unstable.life/gib-roms/Games/001485ad-b206-4e72-a44d-605d836afe6c-1630664499395.zip
-      });
+      try {
+        res.json({
+          uuid: gameinfojson.id,
+          title: gameinfojson.title,
+          utcMilli: gameinfojson.utcMilli,
+          extreme: gameinfojson.extreme,
+          gameFile: gameinfojson.launchCommand,
+          gameLocationOnZip: decodeURIComponent('content/' + new URL(gameinfojson.launchCommand).hostname + new URL(gameinfojson.launchCommand).pathname),
+          gameFile2: `https://download.unstable.life/gib-roms/Games/${gameinfojson.uuid}-${gameinfojson.utcMilli}.zip`,//https://download.unstable.life/gib-roms/Games/001485ad-b206-4e72-a44d-605d836afe6c-1630664499395.zip
+        });
+      } catch (error) {
+        console.error(`Game URL retrieved from Flashpoint API is invalid, the game id is ${gameinfojson.id}:`, error);
+        res.status(500).json({ error: "Game URL is invalid, please report this error to the developer." });
+      }
     } else {
       res.status(404).json({ error: "Failed to fetch game, game might not exist" });
     }
