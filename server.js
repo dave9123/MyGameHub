@@ -30,7 +30,11 @@ if (process.env.DISCORD_CLIENT_ID === undefined) {
 } else if (process.env.DB_NAME === undefined) {
   throw new Error("DB_NAME environment variable is required!");
 } else if (process.env.EMAIL === undefined) {
-  console.log("EMAIL environment variable is required!")
+  throw new Error("EMAIL environment variable is required!");
+} else if (process.env.SECURE === undefined) {
+  throw new Error("SECURE environment variable is required!");
+} else if (process.env.SECURE !== "true" && process.env.SECURE !== "false") {
+  throw new Error("SECURE environment variable must be either 'true' or 'false'!");
 } else {
   console.log("Environment variables are ok");
 }
@@ -124,7 +128,11 @@ app.get("/auth/discord/callback", async (req, res) => {
     const userJson = await userResponse.json();
     console.log(userJson);
     try {
-      res.cookie("token", await authentication.authenticateUser(userJson), { maxAge: 1000 * 60 * 60 * 24 * 30, signed: true, sameSite: "strict"});
+      if (process.env.SECURE === "true") {
+        res.cookie("token", await authentication.authenticateUser(userJson), { maxAge: 1000 * 60 * 60 * 24 * 30, signed: true, secure: true, sameSite: "strict"});
+      } else if (process.env.SECURE === "false") {
+        res.cookie("token", await authentication.authenticateUser(userJson), { maxAge: 1000 * 60 * 60 * 24 * 30, signed: true, secure: false, sameSite: "strict"});
+      }
       res.redirect("/");
       //res.send(`
       //  <div style="margin: 300px auto; max-width: 400px; display: flex; flex-direction: column; align-items: center;">
