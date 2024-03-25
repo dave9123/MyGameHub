@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="author" content="dave9123">
+    <meta property="og:title" content="MyGameHub - Flash">
+    <title>My Game Hub - Flash</title>
+    <link rel="stylesheet" href="assets/styles.css" />
+    <script src="https://unpkg.com/@ruffle-rs/ruffle"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js" integrity="sha512-XMVd28F1oH/O71fzwBnV7HucLxVwtxf26XV8P4wPk26EDxuGZ91N8bsOttmnomcCD3CS5ZMRL50H0GgOHvegtg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://js.sentry-cdn.com/de776303f0220e53d6ea617980dc6a62.min.js" crossorigin="anonymous"></script>
+    <style>
+        #player {
+            display: flex;
+            border: none;
+            height: auto;
+            width: auto;
+        }
+        #player-container {
+            position: relative;
+            align-items: center;
+            justify-content: center;
+            max-width: 500px;
+        }
+    </style>
+    <% if (avatar !== undefined) { %>
+    <script>
+        document.addEventListener('click', function(event) {
+            var profileOptions = document.getElementById('profileOptions');
+            var profile = document.getElementById("userprofile");
+            if (profile.contains(event.target)) {
+                if (profileOptions.style.display === "none") {
+                    profileOptions.style.display = "block";
+                } else {
+                    profileOptions.style.display = "none";
+                }
+            } else if (profileOptions.style.display === 'block' && !profileOptions.contains(event.target)) {
+                profileOptions.style.display = 'none';
+            }
+        });
+    </script>
+    <% } %>
+</head>
+<body>
+    <div class="navbar">
+        <a href="/"><img src="assets/logo-256.jpg"></a>
+        <div class="right-navbar">
+            <a href="developers">Developers</a>
+            <a href="documentation">Documentation</a>
+            <a href="tos">Terms of Service</a>
+            <a href="pp">Privacy Policy</a>
+            <a href="settings">Settings</a>
+            <% if (avatar == undefined) { %>
+            <a href="login">Login</a>
+            <% } %>
+            <% if (avatar !== undefined) { %>
+            <img id="userprofile" src="<%= avatar %>">
+            <% } %>
+        </div>
+        <% if (username !== undefined) { %>
+        <div id="profileOptions" style="display: none;">
+            <p>Logged in as <%= username %></p>
+            <a href="gameactivity">View Game Activity</a>
+            <a href="logout">Log Out</a>
+        </div>
+        <% } %>
+    </div>
+    <div id="player"></div>
+    <p id="ziptext" style="display: none;">Is game not loading? Try enabling Flashpoint zip from <a href="settings">settings</a></p>
+    <script>
+        let gamePath = localStorage.getItem('gamePath');
+        let gameZip = null;
+        let gameFile = null;
+        let player = window.RufflePlayer.newest().createPlayer();
+        player.config.base = gamePath.substring(0, gamePath.lastIndexOf('/') + 1);
+        player.config.allowScriptAccess = true;
+        player.config.showSwfDownload = true;
+        document.querySelector("#player").append(player);
+        (async () => {
+            if (localStorage.getItem('useflashpointzip') === 'true' && localStorage.getItem('provider') === 'flashpoint') {
+                (async () => {
+                    try {
+                        const zipPath = localStorage.getItem('zipPath');
+                        if (zipPath === undefined) {
+                            throw new Error('Zip path not found in localStorage.');
+                            alert('An error occurred.');
+                        }
+                        const zip = await JSZip.loadAsync(await fetch(`proxy?url=${zipPath}`).then(r => r.blob()));
+                        console.log(Object.keys(zip.files));
+                        const gameFileData = await zip.file(`content/${new URL(gamePath).hostname}${new URL(gamePath).pathname}`);
+                        console.log(`Searching for: content/${new URL(gamePath).hostname}${new URL(gamePath).pathname}`);
+                        if (gameFileData === null) {
+                            throw new Error(`File not found in zip: ${zipPath}`);
+                            alert('An error occurred.');
+                        }
+                        const gameBlobUrl = URL.createObjectURL(await gameFileData.async('blob'));
+                        player.load(gameBlobUrl);
+                    } catch (error) {
+                        console.error('Error loading game from zip:', error);
+                        alert('An error occurred. Please try again.');
+                    }
+                })();
+            } else {
+                if (localStorage.getItem('provider') === "flashpoint" && localStorage.getItem('useflashpointzip') === "false") {
+                    document.getElementById('ziptext').style.display = "block";
+                }
+                player.load(gamePath);
+            };
+        })();
+        player.addEventListener('loadedmetadata', () => {
+            if (player.metadata.width > 1 && player.metadata.height > 1) {
+                player.style.width  = player.metadata.width  + 'px';
+                player.style.height = player.metadata.height + 'px';
+            }
+        });
+    </script>
+</body>
+</html>

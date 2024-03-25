@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="author" content="dave9123">
+        <meta property="og:title" content="MyGameHub - Game Activity">
+        <script src="https://js.sentry-cdn.com/de776303f0220e53d6ea617980dc6a62.min.js" crossorigin="anonymous"></script>
+        <link rel="stylesheet" type="text/css" href="assets/styles.css">
+        <title>MyGameHub - Game Activity</title>
+        <% if (avatar !== undefined) { %>
+            <script>
+                document.addEventListener('click', function(event) {
+                    var profileOptions = document.getElementById('profileOptions');
+                    var profile = document.getElementById("userprofile");
+                    if (profile.contains(event.target)) {
+                        if (profileOptions.style.display === "none") {
+                            profileOptions.style.display = "block";
+                        } else {
+                            profileOptions.style.display = "none";
+                        }
+                    } else if (profileOptions.style.display === 'block' && !profileOptions.contains(event.target)) {
+                        profileOptions.style.display = 'none';
+                    }
+                });
+            </script>
+        <% } %>
+        <script>
+            async function play(provider, id) {
+                const response = await fetch(`/api/getgame?provider=${provider}&id=${id}`);
+                if (!response.ok) {
+                    alert('Failed to fetch game');
+                    throw new Error('Failed to fetch game');
+                } else if (response.ok) {
+                    const data = await response.json();
+                    if (provider === "armorgames") {
+                        localStorage.setItem('provider', provider);
+                        localStorage.setItem('gamePath', data.gameFile);
+                        window.location.href = 'flash';
+                    } else if (provider === "flashpoint") {
+                        localStorage.setItem('provider', provider);
+                        localStorage.setItem('gamePath', data.gameFile);
+                        localStorage.setItem('zipPath', data.gameFile2);
+                        window.location.href = 'flash';
+                    }
+                }
+            }
+        </script>
+    </head>
+    <body>
+        <div class="navbar">
+            <a href="/"><img src="assets/logo-256.jpg"></a>
+            <div class="right-navbar">
+                <a href="developers">Developers</a>
+                <a href="documentation">Documentation</a>
+                <a href="tos">Terms of Service</a>
+                <a href="pp">Privacy Policy</a>
+                <a href="settings">Settings</a>
+                <% if (avatar == undefined) { %>
+                <a href="login">Login</a>
+                <% } %>
+                <% if (avatar !== undefined) { %>
+                <img id="userprofile" src="<%= avatar %>">
+                <% } %>
+            </div>
+            <% if (username !== undefined) { %>
+            <div id="profileOptions" style="display: none;">
+                <p>Logged in as <%= username %></p>
+                <a href="gameactivity">View Game Activity</a>
+                <a href="logout">Log Out</a>
+            </div>
+            <% } %>
+        </div>
+        <div class="content-container">
+            <section class="searchresults" id="searchresults">
+                <% activities.forEach(function(activity) { %>
+                <div class="search-result">
+                    <h3><%= activity.gamename %></h3>
+                    <p>Provider: <%= activity.provider %></p>
+                    <p>Played on: <%= activity.timestamp %></p>
+                    <button><a onclick="play('<%= activity.provider %>','<%= activity.gameid %>')" target="_blank">Play Game</a></button>
+                </div>
+                <% }); %>
+            </section>
+        </div>
+    </body>
+</html>

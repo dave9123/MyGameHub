@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="author" content="dave9123">
+        <meta property="og:title" content="MyGameHub - Documentation">
+        <script src="https://js.sentry-cdn.com/de776303f0220e53d6ea617980dc6a62.min.js" crossorigin="anonymous"></script>
+        <link rel="stylesheet" type="text/css" href="assets/styles.css">
+        <title>MyGameHub - Documentation</title>
+        <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+        <% if (avatar !== undefined) { %>
+        <script>
+            document.addEventListener('click', function(event) {
+                var profileOptions = document.getElementById('profileOptions');
+                var profile = document.getElementById("userprofile");
+                if (profile.contains(event.target)) {
+                    if (profileOptions.style.display === "none") {
+                        profileOptions.style.display = "block";
+                    } else {
+                        profileOptions.style.display = "none";
+                    }
+                } else if (profileOptions.style.display === 'block' && !profileOptions.contains(event.target)) {
+                    profileOptions.style.display = 'none';
+                }
+            });
+        </script>
+        <% } %>
+    </head>
+    <body>
+        <div class="navbar">
+            <a href="/"><img src="assets/logo-256.jpg"></a>
+            <div class="right-navbar">
+                <a href="developers">Developers</a>
+                <a href="documentation">Documentation</a>
+                <a href="tos">Terms of Service</a>
+                <a href="pp">Privacy Policy</a>
+                <a href="settings">Settings</a>
+                <% if (avatar == undefined) { %>
+                <a href="login">Login</a>
+                <% } %>
+                <% if (avatar !== undefined) { %>
+                <img id="userprofile" src="<%= avatar %>">
+                <% } %>
+            </div>
+            <% if (username !== undefined) { %>
+            <div id="profileOptions" style="display: none;">
+                <p>Logged in as <%= username %></p>
+                <a href="gameactivity">View Game Activity</a>
+                <a href="logout">Log Out</a>
+            </div>
+            <% } %>
+        </div>
+        <div id="content-container"><container id="documentation"></container></div>
+        <script>
+            document.getElementById('documentation').innerHTML = marked.parse('# API Reference\n### [/api/search] Searching\nExample: `http://localhost/api/search?q=game`<br/>\nAccepts: GET request and `q` request query\n### [/api/getgame] Get Game Information\nExample: `http://localhost/api/getgame?provider=armorgames&id=186`<br/>\nAccepts: GET request, `provider` and `id` request query\n### [/api/userprofile]\nExample: `http://localhost/api/userprofile`<br/>\nAccepts GET request and `token` cookie\n<br/>Example output:\n```json\n{"userid": 781708312466554940, "username":"dave9123","avatar":"https://cdn.discordapp.com/avatars/781708312466554940/9094894eb05f1df2535812ce63583133.png"}\n```');
+        </script>
+    </body>
+</html>

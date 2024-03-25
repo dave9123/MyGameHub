@@ -1,0 +1,28 @@
+{
+    "name": "mygamehub",
+    "version": "0.0.0",
+    "description": "",
+    "main": "index.js",
+    "scripts": {
+      "start": "node server.js",
+      "dev": "nodemon -i debug server.js"
+    },
+    "author": "dave9123",
+    "license": "ISC",
+    "dependencies": {
+        "@sentry/node": "^7.108.0",
+        "cheerio": "^1.0.0-rc.12",
+        "cookie-parser": "^1.4.6",
+        "cookie-session": "^2.1.0",
+        "dotenv": "^16.4.5",
+        "ejs": "^3.1.9",
+        "express": "^4.19.1",
+        "fs-extra": "^11.2.0",
+        "jsonwebtoken": "^9.0.2",
+        "mysql2": "^3.9.2",
+        "sqlite3": "^5.1.7"
+    },
+    "devDependencies": {
+        "nodemon": "^3.1.0"
+    }
+}
