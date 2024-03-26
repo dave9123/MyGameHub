@@ -101,7 +101,7 @@
                     }
                 })();
             } else {
-                if (localStorage.getItem('provider') === "flashpoint" && localStorage.getItem('useflashpointzip') === "false") {
+                if (localStorage.getItem('provider') === "flashpoint" && localStorage.getItem('useflashpointzip') !== "true") {
                     document.getElementById('ziptext').style.display = "block";
                 }
                 player.load(gamePath);
