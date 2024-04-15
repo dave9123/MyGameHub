@@ -10,7 +10,7 @@
     "author": "dave9123",
     "license": "ISC",
     "dependencies": {
-        "@sentry/node": "^7.109.0",
+        "@sentry/node": "^7.110.1",
         "cheerio": "^1.0.0-rc.12",
         "cookie-parser": "^1.4.6",
         "cookie-session": "^2.1.0",
