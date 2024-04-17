@@ -19,7 +19,7 @@
         "express": "^4.19.2",
         "fs-extra": "^11.2.0",
         "jsonwebtoken": "^9.0.2",
-        "mysql2": "^3.9.4",
+        "mysql2": "^3.9.5",
         "sqlite3": "^5.1.7"
     },
     "devDependencies": {
