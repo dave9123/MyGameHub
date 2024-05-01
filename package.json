@@ -10,16 +10,16 @@
     "author": "dave9123",
     "license": "ISC",
     "dependencies": {
-        "@sentry/node": "^7.108.0",
+        "@sentry/node": "^7.112.2",
         "cheerio": "^1.0.0-rc.12",
         "cookie-parser": "^1.4.6",
         "cookie-session": "^2.1.0",
         "dotenv": "^16.4.5",
-        "ejs": "^3.1.9",
-        "express": "^4.19.1",
+        "ejs": "^3.1.10",
+        "express": "^4.19.2",
         "fs-extra": "^11.2.0",
         "jsonwebtoken": "^9.0.2",
-        "mysql2": "^3.9.3",
+        "mysql2": "^3.9.7",
         "sqlite3": "^5.1.7"
     },
     "devDependencies": {
