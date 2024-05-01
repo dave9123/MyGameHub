@@ -28,7 +28,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         <h3>${result.title}</h3>
                         <p>Provider: Flashpoint</p>
                         <img loading="lazy" src="${result.cover}" alt="${result.title} Cover"><br/>
-                        <button><a onclick="playFlashpoint('${result.id}', '${result.title}')" target="_blank">Play Game</a></button>
+                        <button><a onclick="playFlashpoint('${result.id}')" target="_blank">Play Game</a></button>
                     `;
                     searchResultsSection.appendChild(gameElement);
                     return;
