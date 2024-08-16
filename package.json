@@ -11,7 +11,7 @@
     "license": "ISC",
     "dependencies": {
         "@sentry/node": "^8.26.0",
-        "cheerio": "^1.0.0-rc.12",
+        "cheerio": "^1.0.0",
         "cookie-parser": "^1.4.6",
         "cookie-session": "^2.1.0",
         "dotenv": "^16.4.5",
