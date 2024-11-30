@@ -46,12 +46,7 @@ if (process.env.DISCORD_CLIENT_ID === undefined) {
 if (process.env.SENTRY_DSN !== undefined) {
   Sentry.init({
     dsn: process.env.SENTRY_DSN,
-    integrations: [
-      new Sentry.Integrations.Http({ tracing: true }),
-      new Sentry.Integrations.Express({ app }),
-    ],
-    tracesSampleRate: 1.0,
-    profilesSampleRate: 1.0,
+    tracesSampleRate: 1.0
   });
 }
 app.set('view engine', 'ejs');
