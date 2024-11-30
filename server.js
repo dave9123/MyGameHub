@@ -60,8 +60,6 @@ app.use(cookieSession({
   }
 }));
 app.use(cookieParser(process.env.SESSION_SECRET));
-app.use(Sentry.Handlers.requestHandler());
-app.use(Sentry.Handlers.tracingHandler());
 
 async function fetchGame(provider, id, url) {
   console.log(`Fetching game file from ${provider} with id ${id}`);
